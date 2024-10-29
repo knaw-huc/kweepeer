@@ -77,7 +77,7 @@ be plugged in.
 
 > (Robert): Again, wonderful way of discussing the topics. Tantivy is based on the FST library. Also, the FST library is a port of the Lucene FST library, which really is the core of Lucene (the term -> doc id mapping is done in the FST in Lucene). I would say FST is the first option: simple, in-memory, levensthein and also analogue to the non-interactive query expansion mechanism in Lucene that also uses an FST, besides the terms. I think Analiticc is another very interesting expansion technique. I don't know the details, but I have read Martin's work on anagrams.
 
-> (Robert): I do think it is a good idea to consider expansion with neural language models from the start. This is something I can help with. Interestingly, a very popular neural language model tokenizer is rust based: https://github.com/huggingface/tokenizers. I do not know the best way of calling neural models from rust, but I am sure there is a good Rust wrapper of Pytorch's C++ based core.
+> (Robert): I do think it is a good idea to consider expansion with neural language models from the start. This is something I can help with. Interestingly, a very popular neural language model tokenizer is rust based: https://github.com/huggingface/tokenizers. This seems to be a proper Rust pytorch wrapper: https://github.com/LaurentMazare/tch-rs. 'tensors' (the trained weights) can be stored with - again - a rust lib https://github.com/huggingface/safetensors
 
 ## Further Questions
 
