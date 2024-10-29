@@ -52,6 +52,7 @@ Arguments for/against of option 2:
 **Question 1:** *What do we prefer? Are there more arguments that play a role?*
 
 > (Maarten): I currently have a preference for option 2 as it is more minimalistic and decoupled
+> (Robert): First things first: I *really* like this way of discussing. I see option 2 as part of option 1. aybe as a core module?  I don't really see two alternatives, as the Globalise project the described functionality of option 1.
 
 ## Technologies
 
@@ -71,11 +72,15 @@ be plugged in.
 **Question 2:** *Depending on the expansion mechanism and the size of its model, in-memory models may be sufficient. This will benefit performance. What do you think?*
 
 > (Maarten): I have a preference for (efficient) memory-based models when possible. I also prefer minimising dependencies, especially infrastructural once such as external services (like databases).
+> (Robert): Again, wonderful way of discussing the topics. Tantivy is based on the FST library. Also, the FST library is a port of the Lucene FST library, which really is the core of Lucene (the term -> doc id mapping is done in the FST in Lucene). I would say FST is the first option: simple, in-memory, levensthein and also analogue to the non-interactive query expansion mechanism in Lucene that also uses an FST, besides the terms. I think Analiticc is another very interesting expansion technique. I don't know the details, but I have read Martin's work on anagrams.
+> (Robert): I do think it is a good idea to consider expansion with neural language models from the start. This is something I can help with. Interestingly, a very popular neural language model tokenizer is rust based: https://github.com/huggingface/tokenizers. I do not know the best way of calling neural models from rust, but I am sure there is a good Rust wrapper of Pytorch's C++ based core.
 
 ## Further Questions
 
 **Question 3:** *Though this is a backend-project, it might be good to take frontend development and wishes into account at an early stage. How is it going to be integrated for instance in TextAnnoViz?*
 
 > (Maarten): I think a dedicated (reactjs?) component may be envisioned to communicate with the proposed expansion service and developed alongside the backend (but preferably not my be though, I don't do much frontend work).
+> (Robert): this should be considered from the start. Zoekintranscripties provides a working example of this. In this project, both the backend and frontend of the interactive query expansion have been prototyped. I think adding the screenshots to this page would be a good illustration of the kind of UI functionality the backend should be able to support. Needles to say that there should not be any dependencies on UI libraries.
 
 **Question 4:** We need a nice name for the software... Iquex? Iquexs? Quext? Quexpanse? Better suggestions?
+> (Robert): QBert, Quebert ;) 
