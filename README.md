@@ -58,6 +58,73 @@ Arguments for/against of option 2:
 
 > (Maarten): I suppose when seen from a higher level the difference is moot. But for the architectural design, especially the deliberation what goes into the backend service (or core module) rather than the frontend caller, it does matter. In the above description I'm approaching this project initially from the perspective of a backend Web API. In option 1 the Web API would receive a full Lucene query, in option 2 it would receive just single terms for expansion. I'll work out the architecture a bit more.
 
+> (Maarten): .... I got a bit hung up on who does the query parsing and wanted the expansion backend to be as query language agnostic as possible. But now I'm working out the full architecture I'm seeing the advantage of having it handle the full query rather than single terms and lifting this burden of the caller. I'd still prefer decoupling it from the search engine as much as possible, so this is a kind of option 1.5. Illustrated in the schema below.
+
+### Schema
+
+This schema presents an architecture with some proposed expansion modules. The modules
+would be written in Rust, building on a common API, and compiled into the query expansion service.
+Module details may need to be worked out further.
+
+```mermaid
+flowchart TD
+    app[/"Web Application\n(e.g. TextAnnoViz)"/]
+    frontend["Query Expansion UI Component\n(frontend)"]
+    backend[/"Query Expansion Webservice\n(backend)"/]
+    search[/"Search engine\n(any software)"/]
+    searchdb[("Search Index")]
+
+    app -- "initial search query" --> frontend
+
+    frontend -- "search query\n(HTTP POST)" --> backend
+    backend -- "expanded search query" --> frontend
+    app -- "expanded search query" --> search
+    frontend -- "expanded search query" --> app
+    search -- "search results" --> app
+    search --- searchdb
+
+    parser["Query parser"]
+    subgraph modules 
+        lexsimfst["Lexical Similarity Module 1\n(FST, in-memory)"]
+        lexsimanaliticcl["Lexical Similarity Module 2\n(Analiticcl, in-memory)"]
+        semsim["Semantic Similarity Module"]
+        autocomplete["Autocompletion Module"]
+        translator["Translation Module"]
+        fst[("Finite State Transducer")]
+        lexicon[("(Weighted) Lexicon")]
+        lm[("Language Model\n(Transformer)")]
+        tm[("Translation Model\n(Transformer)")]
+    end
+
+    parser["Query Parser\n(ANTLR)"]
+    compositor["Query Compositor"]
+    dispatcher["Dispatcher"]
+    parser -- "search terms" --> dispatcher
+
+    backend --> parser
+    compositor -- "expanded search query" --> backend
+
+    dispatcher <-- "search term" --> lexsimfst
+    dispatcher <--> lexsimanaliticcl
+    dispatcher <--> semsim
+    dispatcher <--> autocomplete
+    dispatcher <--> translator
+    dispatcher -- "expanded search terms" --> compositor
+
+    lexsimfst --- fst
+    fst --- lexicon
+    lexsimanaliticcl --- lexicon
+    semsim --- lm
+    autocomplete --- lm
+    translator --- tm
+
+    classDef external fill:#ccc
+    class app,search,searchdb external
+```
+
+**Question 5:** *First of all this repeats parts of question 1. Does this schema sufficiently cover all intended use-cases? Are there proposed modules missing or obsolete?*
+
+
 ## Technologies
 
 The service will be implemented in Rust and focus on performance.
