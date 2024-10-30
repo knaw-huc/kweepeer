@@ -118,7 +118,7 @@ flowchart TD
     autocomplete --- lm
     translator --- tm
 
-    classDef external fill:#ccc
+    classDef external fill:#ccc,color:#111
     class app,search,searchdb external
 ```
 
