@@ -68,15 +68,15 @@ Module details may need to be worked out further.
 
 ```mermaid
 flowchart TD
-    app[/"Web Application\n(e.g. TextAnnoViz)"/]
-    frontend["Query Expansion UI Component\n(frontend)"]
-    backend[/"Query Expansion Webservice\n(backend)"/]
-    search[/"Search engine\n(any software)"/]
+    app[/"Web Application (e.g. TextAnnoViz)"/]
+    frontend["Query Expansion UI Component (frontend)"]
+    backend[/"Query Expansion Webservice (backend)"/]
+    search[/"Search engine (any software)"/]
     searchdb[("Search Index")]
 
     app -- "initial search query" --> frontend
 
-    frontend -- "search query\n(HTTP POST)" --> backend
+    frontend -- "search query (HTTP POST)" --> backend
     backend -- "expanded search query" --> frontend
     app -- "expanded search query" --> search
     frontend -- "expanded search query" --> app
@@ -85,15 +85,15 @@ flowchart TD
 
     parser["Query parser"]
     subgraph modules 
-        lexsimfst["Lexical Similarity Module 1\n(FST, in-memory)"]
-        lexsimanaliticcl["Lexical Similarity Module 2\n(Analiticcl, in-memory)"]
+        lexsimfst["Lexical Similarity Module 1 (FST, in-memory)"]
+        lexsimanaliticcl["Lexical Similarity Module 2 (Analiticcl, in-memory)"]
         semsim["Semantic Similarity Module"]
         autocomplete["Autocompletion Module"]
         translator["Translation Module"]
         fst[("Finite State Transducer")]
         lexicon[("(Weighted) Lexicon")]
-        lm[("Language Model\n(Transformer)")]
-        tm[("Translation Model\n(Transformer)")]
+        lm[("Language Model (Transformer)")]
+        tm[("Translation Model (Transformer)")]
     end
 
     parser["Query Parser\n(ANTLR)"]
