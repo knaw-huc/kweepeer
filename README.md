@@ -56,6 +56,8 @@ Arguments for/against of option 2:
 
 > (Robert): First things first: I *really* like this way of discussing. I see option 2 as part of option 1. aybe as a core module?  I don't really see two alternatives, as the Globalise project the described functionality of option 1.
 
+> (Maarten): I suppose when seen from a higher level the difference is moot. But for the architectural design, especially the deliberation what goes into the backend service (or core module) rather than the frontend caller, it does matter. In the above description I'm approaching this project initially from the perspective of a backend Web API. In option 1 the Web API would receive a full Lucene query, in option 2 it would receive just single terms for expansion. I'll work out the architecture a bit more.
+
 ## Technologies
 
 The service will be implemented in Rust and focus on performance.
@@ -79,6 +81,13 @@ be plugged in.
 
 > (Robert): I do think it is a good idea to consider expansion with neural language models from the start. This is something I can help with. Interestingly, a very popular neural language model tokenizer is rust based: https://github.com/huggingface/tokenizers. This seems to be a proper Rust pytorch wrapper: https://github.com/LaurentMazare/tch-rs. 'tensors' (the trained weights) can be stored with - again - a rust lib https://github.com/huggingface/safetensors
 
+> (Maarten): Yes, indeed, I once did a project with [rust-bert](https://github.com/guillaume-be/rust-bert) which builds upon tch-rs. Huggingface indeed also uses Rust for some core libraries. I see two ways in which language models may be relevant for an expansion module:
+> 
+> 1. Semantic Similarity - (compute word embeddings and have the model produce synonyms/related words)
+> 2. Autocompletion
+>
+> The latter is arguably less useful than the former for this use-case. It's indeed a good idea to consider this from the start.
+
 ## Further Questions
 
 **Question 3:** *Though this is a backend-project, it might be good to take frontend development and wishes into account at an early stage. How is it going to be integrated for instance in TextAnnoViz?*
@@ -87,5 +96,10 @@ be plugged in.
 
 > (Robert): this should be considered from the start. Zoekintranscripties provides a working example of this. In this project, both the backend and frontend of the interactive query expansion have been prototyped. I think adding the screenshots to this page would be a good illustration of the kind of UI functionality the backend should be able to support. Needles to say that there should not be any dependencies on UI libraries.
 
+> (Maarten): Agreed, it's best to consider the frontend from the start and use what you already have as a good example. We should also make sure we have a front-end designer on the team for this then, we have two colleagues in our HuC Team Text who can hopefully fulfill that role.
+
 **Question 4:** We need a nice name for the software... Iquex? Iquexs? Quext? Quexpanse? Better suggestions?
+
 > (Robert): QBert, Quebert ;) 
+
+> (Maarten): Quebert does sound nice,  it does kind-of suggest that the whole thing is just a transformer model whilst it'll be more generic.
