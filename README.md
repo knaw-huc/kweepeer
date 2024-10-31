@@ -191,3 +191,7 @@ This is a initial proposed planning for this task. The bulk of the work will be 
     3. **Deliverable:** Deployment in Globalise context
 
 Backend implementation may also extend into Q2 2025.
+
+**Question 6:** What do we think of such a planning? Bearing in mind that it's rough indication rather than a strict commitment at this stage.
+
+> (Maarten): I'm trying not to plan too much actual implementation in Q4 yet (as I'm formally out of hours already), and I think we can use the time to clarify the plans and do some initial experiments.
