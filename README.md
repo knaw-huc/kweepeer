@@ -175,3 +175,17 @@ be plugged in.
 
 > (Maarten): Quebert does sound nice,  it does kind-of suggest that the whole thing is just a transformer model whilst it'll be more generic.
 
+## Planning & Deliverables
+
+This is a initial proposed planning for this task. The bulk of the work will be conducted in the first part of 2025:
+
+* Q4 2024 - Preparatory work: investigation, exploration, planning, architectural design
+    * **Deliverable:** this plan
+* Q1 2025 - Backend Implementation
+    * **Deliverable:** Backend service & modules (this repository)
+* Q2 2025 - Frontend Implementation
+    1. **Deliverable:** Frontend component (this or other repo)
+    2. **Deliverable:** TextAnnoViz integration
+    3. **Deliverable:** Deployment in Globalise context
+
+Backend implementation may also extend into Q2 2025.
