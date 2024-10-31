@@ -83,6 +83,10 @@ flowchart TD
     search -- "search results" --> app
     search --- searchdb
 
+    backend -. "expanded search query (alt)" .-> search
+    search -. "search results (alt)" .-> backend
+    backend -. "search results (alt)" .-> app
+
     parser["Query parser"]
     subgraph modules 
         lexsimfst["Lexical Similarity Module 1 (FST, in-memory)"]
@@ -170,3 +174,4 @@ be plugged in.
 > (Robert): QBert, Quebert ;) 
 
 > (Maarten): Quebert does sound nice,  it does kind-of suggest that the whole thing is just a transformer model whilst it'll be more generic.
+
