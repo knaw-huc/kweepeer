@@ -78,14 +78,14 @@ flowchart TD
     app -- "initial search query" --> frontend
 
     frontend -- "search query (HTTP POST)" --> wrapper
-    wrapper --> backend
 
     backend -- "expanded search query" --> wrapper
     search -- "search results" --> wrapper
     search --- searchdb
 
+    wrapper -- "serch query" --> backend
+
     wrapper -- "expanded search query (HTTP POST)" --> search
-    backend -- "search results and expansions" --> wrapper
     wrapper -- "search results" --> frontend
     frontend -- "search results and expansions" --> app
 
