@@ -179,7 +179,7 @@ be plugged in.
 
 This is a initial proposed planning for this task. The bulk of the work will be conducted in the first part of 2025:
 
-* Q4 2024 - Preparatory work: investigation, exploration, planning, architectural design
+* Q4 2024 - Preparatory work: investigation, exploration, planning, architectural design, some prototyping
     * **Deliverable:** this plan
 * Q1 2025 - Backend Implementation
     * **Deliverable:** Backend service & modules (this repository)
