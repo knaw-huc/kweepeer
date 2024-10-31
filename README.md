@@ -73,19 +73,21 @@ flowchart TD
     backend[/"Query Expansion Webservice (backend)"/]
     search[/"Search engine (any software)"/]
     searchdb[("Search Index")]
+    wrapper[/"Search wrapper service"/]
 
     app -- "initial search query" --> frontend
 
-    frontend -- "search query (HTTP POST)" --> backend
-    backend -- "expanded search query" --> frontend
-    app -- "expanded search query" --> search
-    frontend -- "expanded search query" --> app
-    search -- "search results" --> app
+    frontend -- "search query (HTTP POST)" --> wrapper
+    wrapper --> backend
+
+    backend -- "expanded search query" --> wrapper
+    search -- "search results" --> wrapper
     search --- searchdb
 
-    backend -. "expanded search query (alt)" .-> search
-    search -. "search results (alt)" .-> backend
-    backend -. "search results (alt)" .-> app
+    wrapper -- "expanded search query (HTTP POST)" --> search
+    backend -- "search results and expansions" --> wrapper
+    wrapper -- "search results" --> frontend
+    frontend -- "search results and expansions" --> app
 
     parser["Query parser"]
     subgraph modules 
