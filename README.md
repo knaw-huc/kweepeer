@@ -83,7 +83,7 @@ flowchart TD
     search -- "search results" --> wrapper
     search --- searchdb
 
-    wrapper -- "serch query" --> backend
+    wrapper -- "search query" --> backend
 
     wrapper -- "expanded search query (HTTP POST)" --> search
     wrapper -- "search results" --> frontend
