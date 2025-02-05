@@ -1,0 +1,25 @@
+[package]
+name = "kweepeer"
+description = "A generic webservice for interactive query expansion, expansion is provided via various modules"
+version = "0.1.0"
+edition = "2021"
+authors = ["Maarten van Gompel <proycon@anaproy.nl>"]
+include = ["src/*", "LICENSE", "README.md"]
+license = "AGPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/knaw-huc/kweepeer"
+keywords = [ "text-processing", "query expansion", "search" ]
+
+[dependencies]
+axum = "0.8.1"
+clap = { version = "4.5.20", features = ["derive"] }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
+tokio = { version = "1.41.0", features = ["macros","rt-multi-thread","signal"] }
+tower = "0.5.1"
+tower-http = { version = "0.6.1", features= ["trace", "normalize-path"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+utoipa = { version = "5.3.1", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9.0", features = ["axum", "vendored"] }
+logos = "0.15.0"
