@@ -4,9 +4,13 @@ use axum::{
 };
 use clap::Parser;
 use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 use tower_http::trace::TraceLayer;
 use tracing::{debug, error};
 
+use serde::Deserialize;
+use toml;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -15,10 +19,9 @@ mod common;
 mod lexer;
 use common::{ApiError, ApiResponse, TermExpansion};
 use lexer::Term;
-
-struct AppState {
-    debug: bool,
-}
+mod modules;
+use modules::{LoadError, Modular, Module};
+use modules::{LookupConfig, LookupModule};
 
 #[derive(Parser, Debug, Clone)]
 struct Args {
@@ -36,6 +39,20 @@ struct Args {
         help = "Output logging info on incoming requests"
     )]
     debug: bool,
+
+    #[arg(long = "config", default_value = "config.toml")]
+    config_path: PathBuf,
+}
+
+struct AppState {
+    args: Args,
+    config: Config,
+    modules: Vec<Module>,
+}
+
+#[derive(Deserialize, Default)]
+struct Config {
+    lookup: Vec<LookupConfig>,
 }
 
 #[derive(OpenApi)]
@@ -59,11 +76,23 @@ async fn main() {
             .init();
     }
 
+    let toml_string =
+        std::fs::read_to_string(&args.config_path).expect("Unable to read configuration file");
+    let config: Config = toml::from_str(&toml_string).expect("Unable to parse configuration file");
+
+    let mut state = AppState {
+        args: args.clone(),
+        config,
+        modules: vec![],
+    };
+
+    state.load().expect("Failure whilst loading");
+
     let app = Router::new()
         .route("/", get(query_entrypoint))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
-        .with_state(args.clone());
+        .with_state(Arc::new(state));
 
     //allow trailing slashes as well: (conflicts with swagger-ui!)
     //let app = NormalizePathLayer::trim_trailing_slash().layer(app);
@@ -94,12 +123,23 @@ async fn main() {
 /// Receive and process a query. This is the main entrypoint
 async fn query_entrypoint(
     Query(params): Query<HashMap<String, String>>,
-    _state: State<Args>,
+    _state: State<Arc<AppState>>,
 ) -> Result<ApiResponse, ApiError> {
     if let Some(querystring) = params.get("q") {
         let terms = Term::extract_from_query(querystring);
         Ok(ApiResponse::new_queryexpansion(&terms, querystring))
     } else {
         Err(ApiError::MissingArgument("query"))
+    }
+}
+
+impl AppState {
+    fn load(&mut self) -> Result<(), LoadError> {
+        for lookupconfig in self.config.lookup.iter() {
+            let mut module = Module::Lookup(LookupModule::new(lookupconfig.clone()));
+            module.load();
+            self.modules.push(module);
+        }
+        Ok(())
     }
 }

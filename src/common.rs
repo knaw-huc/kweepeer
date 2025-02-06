@@ -10,12 +10,13 @@ use serde_json::value::Value;
 use crate::lexer::Term;
 
 use std::collections::HashMap;
+pub type TermExpansions = HashMap<String, Vec<TermExpansion>>;
 
 #[derive(Debug)]
 pub enum ApiResponse {
     QueryExpansion {
         /// Terms and expansions
-        terms: HashMap<String, Vec<TermExpansion>>,
+        terms: TermExpansions,
         /// The input query
         original_query: String,
         /// The expanded query
@@ -133,7 +134,29 @@ impl From<axum::Error> for ApiError {
 #[derive(Debug, Serialize, Default)]
 pub struct TermExpansion {
     expansions: Vec<String>,
-    score: Vec<f64>,
+    scores: Vec<f64>,
     source: Option<String>,
     link: Option<String>,
+}
+
+impl TermExpansion {
+    pub fn with_source(mut self, source: impl Into<String>) -> Self {
+        self.source = Some(source.into());
+        self
+    }
+
+    pub fn with_link(mut self, link: impl Into<String>) -> Self {
+        self.link = Some(link.into());
+        self
+    }
+
+    pub fn with_expansions(mut self, expansions: Vec<String>) -> Self {
+        self.expansions = expansions;
+        self
+    }
+
+    pub fn with_scores(mut self, scores: Vec<f64>) -> Self {
+        self.scores = scores;
+        self
+    }
 }
