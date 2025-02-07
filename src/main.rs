@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use tower_http::trace::TraceLayer;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 use serde::Deserialize;
 use toml;
@@ -17,7 +17,7 @@ use utoipa_swagger_ui::SwaggerUi;
 mod apidocs;
 mod common;
 mod lexer;
-use common::{ApiError, ApiResponse, TermExpansion};
+use common::{ApiError, ApiResponse, TermExpansion, TermExpansions};
 use lexer::Term;
 mod modules;
 use modules::{LoadError, Modular, Module};
@@ -40,7 +40,7 @@ struct Args {
     )]
     debug: bool,
 
-    #[arg(long = "config", default_value = "config.toml")]
+    #[arg(long = "config", short, default_value = "config.toml")]
     config_path: PathBuf,
 }
 
@@ -76,6 +76,7 @@ async fn main() {
             .init();
     }
 
+    info!("Loading configuration from {}", &args.config_path.display());
     let toml_string =
         std::fs::read_to_string(&args.config_path).expect("Unable to read configuration file");
     let config: Config = toml::from_str(&toml_string).expect("Unable to parse configuration file");
@@ -112,6 +113,8 @@ async fn main() {
     path = "/",
     params(
         ("q" = String, Query, description = "A query in Lucene syntax", allow_reserved),
+        ("include" = String, Query, description = "Comma separated list of modules to include", allow_reserved),
+        ("exclude" = String, Query, description = "Comma separated list of modules to exclude", allow_reserved),
     ),
     responses(
         (status = 200, description = "Query result",content(
@@ -123,12 +126,50 @@ async fn main() {
 /// Receive and process a query. This is the main entrypoint
 async fn query_entrypoint(
     Query(params): Query<HashMap<String, String>>,
-    _state: State<Arc<AppState>>,
+    state: State<Arc<AppState>>,
 ) -> Result<ApiResponse, ApiError> {
+    let excludemods: Vec<_> = params
+        .get("exclude")
+        .into_iter()
+        .map(|v| v.split(","))
+        .flatten()
+        .collect();
+    let includemods: Vec<_> = params
+        .get("include")
+        .into_iter()
+        .map(|v| v.split(","))
+        .flatten()
+        .collect();
     if let Some(querystring) = params.get("q") {
+        let mut terms_map = TermExpansions::new();
         let (terms, query_template) = Term::extract_from_query(querystring);
+        for module in state.modules.iter() {
+            if (excludemods.is_empty() || !excludemods.contains(&module.id()))
+                || (includemods.is_empty() || includemods.contains(&module.id()))
+            {
+                let expansion_map = module.expand_query(&terms);
+                for term in terms.iter() {
+                    terms_map
+                        .entry(term.as_str().to_string())
+                        .and_modify(|expansions| {
+                            if let Some(expansions2) = expansion_map.get(term.as_str()) {
+                                for expansion in expansions2 {
+                                    expansions.push(expansion.clone()); //TODO: work away the clone
+                                }
+                            }
+                        })
+                        .or_insert_with(|| {
+                            if let Some(expansions2) = expansion_map.get(term.as_str()) {
+                                expansions2.to_vec() //TODO: work away the clone
+                            } else {
+                                vec![]
+                            }
+                        });
+                }
+            }
+        }
         Ok(ApiResponse::new_queryexpansion(
-            &terms,
+            terms_map,
             querystring,
             query_template,
         ))
@@ -137,13 +178,21 @@ async fn query_entrypoint(
     }
 }
 
+//TODO: modules endpoint to query available modules
+
 impl AppState {
     fn load(&mut self) -> Result<(), LoadError> {
         for lookupconfig in self.config.lookup.iter() {
+            info!(
+                "Adding Lookup module {} - {}",
+                lookupconfig.id(),
+                lookupconfig.name()
+            );
             let mut module = Module::Lookup(LookupModule::new(lookupconfig.clone()));
             module.load()?;
             self.modules.push(module);
         }
+        info!("All modules loaded");
         Ok(())
     }
 }

@@ -66,17 +66,13 @@ impl Serialize for ApiResponse {
 
 impl ApiResponse {
     pub fn new_queryexpansion(
-        terms: &Vec<Term>,
+        terms: TermExpansions,
         query: &str,
         query_expansion_template: impl Into<String>,
     ) -> Self {
-        let mut terms_map = TermExpansions::new();
-        for term in terms {
-            terms_map.insert(term.as_str().to_owned(), vec![]);
-        }
         Self::QueryExpansion {
             query_expansion_template: query_expansion_template.into(),
-            terms: terms_map,
+            terms,
             original_query: query.to_owned(),
             query: String::new(),
         }
@@ -143,7 +139,7 @@ impl From<axum::Error> for ApiError {
     }
 }
 
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct TermExpansion {
     expansions: Vec<String>,
     scores: Vec<f64>,

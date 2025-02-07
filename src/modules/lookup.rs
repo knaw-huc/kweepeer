@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
+use tracing::{debug, info};
 
 use crate::common::{ApiError, TermExpansion, TermExpansions};
 use crate::lexer::Term;
@@ -44,6 +45,16 @@ pub struct LookupConfig {
     allow_numeric: bool,
 }
 
+impl LookupConfig {
+    pub fn id(&self) -> &str {
+        self.id.as_str()
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+}
+
 fn tab() -> char {
     '\t'
 }
@@ -76,48 +87,62 @@ impl Modular for LookupModule {
     }
 
     fn load(&mut self) -> Result<(), LoadError> {
+        info!("Loading lexicon {}", self.config.file.as_path().display());
         let file = File::open(self.config.file.as_path())?;
         let mut buffer = String::new();
         let mut reader = BufReader::new(file);
         let mut firstline = true;
         while let Ok(bytes) = reader.read_line(&mut buffer) {
+            if bytes == 0 {
+                //EOF
+                break;
+            }
             if firstline {
                 firstline = false;
                 if self.config.skipfirstline {
+                    buffer.clear();
                     continue;
                 }
             }
-            if bytes > 0 && buffer.chars().next() != Some('#') {
+            if buffer.chars().next() != Some('#') {
                 let mut iter = buffer.trim().splitn(2, self.config.delimiter);
                 if let (Some(keyword), Some(variants)) = (iter.next(), iter.next()) {
                     let variants: Vec<_> = variants
-                        .splitn(2, self.config.delimiter2)
+                        .split(self.config.delimiter2)
                         .filter_map(|s| {
                             //check if field is not purely numeric, ignore if it is
-                            if !self.config.allow_numeric || s.parse::<f64>().is_err() {
+                            if self.config.allow_numeric || s.parse::<f64>().is_err() {
                                 Some(s.to_owned())
                             } else {
                                 None
                             }
                         })
                         .collect();
-                    self.data.variants.insert(keyword.to_owned(), variants);
+                    if !variants.is_empty() {
+                        self.data.variants.insert(keyword.to_owned(), variants);
+                    }
                 }
             }
+            buffer.clear();
         }
+        info!("Loaded {} terms", self.data.variants.len());
         Ok(())
     }
 
     fn expand_query(&self, terms: &Vec<Term>) -> TermExpansions {
         let mut expansions = TermExpansions::new();
         for term in terms {
+            debug!("Looking up {}", term.as_str());
             if let Some(variants) = self.data.variants.get(term.as_str()) {
+                debug!("found {} expansions", variants.len());
                 expansions.insert(
                     term.as_str().to_string(),
                     vec![TermExpansion::default()
                         .with_source(self.config.id.as_str(), self.config.name.as_str())
                         .with_expansions(variants.to_vec())],
                 );
+            } else {
+                debug!("not found");
             }
         }
         expansions

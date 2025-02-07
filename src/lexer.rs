@@ -44,8 +44,11 @@ impl<'a> Term<'a> {
                         if begin > last_offset {
                             query_template += &query[last_offset..begin];
                         }
+                        last_offset = begin + x.as_str().len();
+                    } else {
+                        last_offset += x.as_str().len();
                     }
-                    last_offset += x.as_str().len();
+                    eprintln!("last_offset={}", last_offset);
                     query_template += "{{";
                     query_template += x.as_str();
                     query_template += "}}";
