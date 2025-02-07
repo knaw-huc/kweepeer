@@ -27,16 +27,36 @@ pub enum Term<'a> {
 }
 
 impl<'a> Term<'a> {
-    /// Extract terms from a query
-    pub fn extract_from_query(query: &'a str) -> Vec<Term<'a>> {
-        Term::lexer(query)
+    /// Extract terms from a query. Returns the terms and a query template
+    /// where terms are marked with `{{` `}}` for easy substitution later.
+    pub fn extract_from_query(query: &'a str) -> (Vec<Term<'a>>, String) {
+        //last_offset in bytes
+        let mut last_offset = 0;
+        let mut query_template = String::new();
+        let terms = Term::lexer(query)
             .into_iter()
-            .filter_map(|res| match res {
+            .filter_map(|term| match term {
                 Err(_) => None,
                 Ok(Term::None) => None,
-                Ok(x) => Some(x),
+                Ok(x) => {
+                    if last_offset > 0 {
+                        let begin = (x.as_str().as_ptr() as usize) - (query.as_ptr() as usize);
+                        if begin > last_offset {
+                            query_template += &query[last_offset..begin];
+                        }
+                    }
+                    last_offset += x.as_str().len();
+                    query_template += "{{";
+                    query_template += x.as_str();
+                    query_template += "}}";
+                    Some(x)
+                }
             })
-            .collect()
+            .collect();
+        if last_offset < query.len() {
+            query_template += &query[last_offset..];
+        }
+        (terms, query_template)
     }
 
     /// Returns the term as a string

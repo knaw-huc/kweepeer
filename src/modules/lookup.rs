@@ -8,6 +8,13 @@ use crate::common::{ApiError, TermExpansion, TermExpansions};
 use crate::lexer::Term;
 use crate::modules::{LoadError, Modular};
 
+/// A simple hash-map-based lookup module
+/// mapping keywords to variants.
+pub struct LookupModule {
+    config: LookupConfig,
+    data: LookupData,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct LookupConfig {
     /// Short identifier
@@ -40,11 +47,6 @@ fn tab() -> char {
 #[derive(Default)]
 pub struct LookupData {
     variants: HashMap<String, Vec<String>>,
-}
-
-pub struct LookupModule {
-    config: LookupConfig,
-    data: LookupData,
 }
 
 impl LookupModule {
@@ -102,7 +104,7 @@ impl Modular for LookupModule {
                 expansions.insert(
                     term.as_str().to_string(),
                     vec![TermExpansion::default()
-                        .with_source(self.config.name.as_str())
+                        .with_source(self.config.id.as_str(), self.config.name.as_str())
                         .with_expansions(variants.to_vec())],
                 );
             }

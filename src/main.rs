@@ -126,8 +126,12 @@ async fn query_entrypoint(
     _state: State<Arc<AppState>>,
 ) -> Result<ApiResponse, ApiError> {
     if let Some(querystring) = params.get("q") {
-        let terms = Term::extract_from_query(querystring);
-        Ok(ApiResponse::new_queryexpansion(&terms, querystring))
+        let (terms, query_template) = Term::extract_from_query(querystring);
+        Ok(ApiResponse::new_queryexpansion(
+            &terms,
+            querystring,
+            query_template,
+        ))
     } else {
         Err(ApiError::MissingArgument("query"))
     }

@@ -10,6 +10,8 @@ use serde_json::value::Value;
 use crate::lexer::Term;
 
 use std::collections::HashMap;
+
+/// Maps a term to expansions, each `TermExpansion` corresponds to one source/module and may itself contain multiple expansions
 pub type TermExpansions = HashMap<String, Vec<TermExpansion>>;
 
 #[derive(Debug)]
@@ -19,7 +21,10 @@ pub enum ApiResponse {
         terms: TermExpansions,
         /// The input query
         original_query: String,
-        /// The expanded query
+        /// A template for query expansion,
+        /// expandable terms are replaced {{term}}, which refer back to the terms.
+        query_expansion_template: String,
+        /// The full expanded query
         query: String,
     },
 }
@@ -46,10 +51,12 @@ impl Serialize for ApiResponse {
             Self::QueryExpansion {
                 terms,
                 original_query,
+                query_expansion_template,
                 query,
             } => {
                 state.serialize_field("terms", terms)?;
                 state.serialize_field("original_query", original_query)?;
+                state.serialize_field("query_expansion_template", query_expansion_template)?;
                 state.serialize_field("query", query)?;
             }
         }
@@ -58,12 +65,17 @@ impl Serialize for ApiResponse {
 }
 
 impl ApiResponse {
-    pub fn new_queryexpansion(terms: &Vec<Term>, query: &str) -> Self {
-        let mut terms_map = HashMap::new();
+    pub fn new_queryexpansion(
+        terms: &Vec<Term>,
+        query: &str,
+        query_expansion_template: impl Into<String>,
+    ) -> Self {
+        let mut terms_map = TermExpansions::new();
         for term in terms {
             terms_map.insert(term.as_str().to_owned(), vec![]);
         }
         Self::QueryExpansion {
+            query_expansion_template: query_expansion_template.into(),
             terms: terms_map,
             original_query: query.to_owned(),
             query: String::new(),
@@ -135,13 +147,15 @@ impl From<axum::Error> for ApiError {
 pub struct TermExpansion {
     expansions: Vec<String>,
     scores: Vec<f64>,
-    source: Option<String>,
+    source_id: Option<String>,
+    source_name: Option<String>,
     link: Option<String>,
 }
 
 impl TermExpansion {
-    pub fn with_source(mut self, source: impl Into<String>) -> Self {
-        self.source = Some(source.into());
+    pub fn with_source(mut self, id: impl Into<String>, name: impl Into<String>) -> Self {
+        self.source_id = Some(id.into());
+        self.source_name = Some(name.into());
         self
     }
 
