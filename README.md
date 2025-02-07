@@ -6,6 +6,24 @@ The Globalise project requests an interactive query expansion webservice which e
 
 This repository holds the backend service that provides query expansion, it is called *Kweepeer* (pronounceas /ˈkʋe.pɪːr/ or  /ˈkwe.peːr/) and named after a fruit known as Quince in English.
 
+## Installation
+
+### From source
+
+Production environments:
+
+```
+$ cargo install kweepeer
+```
+
+Development environments:
+
+```
+$ git clone git@github.com:knaw-huc/kweepeer.git
+$ cd kweepeer
+$ cargo install --path .
+```
+
 ## Architecture
 
 This schema presents an architecture with some proposed expansion modules. The modules
