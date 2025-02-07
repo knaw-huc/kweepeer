@@ -137,7 +137,7 @@ impl AppState {
     fn load(&mut self) -> Result<(), LoadError> {
         for lookupconfig in self.config.lookup.iter() {
             let mut module = Module::Lookup(LookupModule::new(lookupconfig.clone()));
-            module.load();
+            module.load()?;
             self.modules.push(module);
         }
         Ok(())

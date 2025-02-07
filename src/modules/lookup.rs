@@ -1,13 +1,19 @@
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 
 use crate::common::{ApiError, TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::Modular;
+use crate::modules::{LoadError, Modular};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct LookupConfig {
+    /// Short identifier
+    id: String,
+
+    /// Human readable label
     name: String,
 
     /// The path to the variant list file that holds the lookup data.
@@ -15,6 +21,20 @@ pub struct LookupConfig {
     /// columns and variants in the subsequent (dynamic-sized) columns
     /// It will be loaded into memory entirely.
     file: PathBuf,
+
+    #[serde(default = "tab")]
+    delimiter: char,
+
+    #[serde(default = "tab")]
+    delimiter2: char,
+
+    /// Set this if the first line is a header
+    #[serde(default)]
+    skipfirstline: bool,
+}
+
+fn tab() -> char {
+    '\t'
 }
 
 #[derive(Default)]
@@ -37,6 +57,10 @@ impl LookupModule {
 }
 
 impl Modular for LookupModule {
+    fn id(&self) -> &str {
+        self.config.id.as_str()
+    }
+
     fn name(&self) -> &str {
         self.config.name.as_str()
     }
@@ -45,7 +69,29 @@ impl Modular for LookupModule {
         "lookup"
     }
 
-    fn load(&mut self) -> Result<(), ApiError> {
+    fn load(&mut self) -> Result<(), LoadError> {
+        let file = File::open(self.config.file.as_path())?;
+        let mut buffer = String::new();
+        let mut reader = BufReader::new(file);
+        let mut firstline = true;
+        while let Ok(bytes) = reader.read_line(&mut buffer) {
+            if firstline {
+                firstline = false;
+                if self.config.skipfirstline {
+                    continue;
+                }
+            }
+            if bytes > 0 && buffer.chars().next() != Some('#') {
+                let mut iter = buffer.trim().splitn(2, self.config.delimiter);
+                if let (Some(keyword), Some(variants)) = (iter.next(), iter.next()) {
+                    let variants: Vec<_> = variants
+                        .splitn(2, self.config.delimiter2)
+                        .map(|s| s.to_owned())
+                        .collect();
+                    self.data.variants.insert(keyword.to_owned(), variants);
+                }
+            }
+        }
         Ok(())
     }
 
