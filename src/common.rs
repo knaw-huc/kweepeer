@@ -27,6 +27,7 @@ pub enum ApiResponse {
         /// The full expanded query
         query: String,
     },
+    Modules(Vec<Value>),
 }
 
 impl IntoResponse for ApiResponse {
@@ -37,6 +38,7 @@ impl IntoResponse for ApiResponse {
         );
         match &self {
             Self::QueryExpansion { .. } => (StatusCode::OK, [cors], Json(&self)).into_response(),
+            Self::Modules(data) => (StatusCode::OK, [cors], Json(data)).into_response(),
         }
     }
 }
@@ -59,6 +61,7 @@ impl Serialize for ApiResponse {
                 state.serialize_field("query_expansion_template", query_expansion_template)?;
                 state.serialize_field("query", query)?;
             }
+            Self::Modules(v) => state.serialize_field("modules", v)?,
         }
         state.end()
     }

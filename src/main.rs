@@ -10,6 +10,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{debug, error, info};
 
 use serde::Deserialize;
+use serde_json::json;
 use toml;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -58,7 +59,8 @@ struct Config {
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        query_entrypoint
+        query_entrypoint,
+        list_modules
     ),
     tags(
         (name = "kweepeer", description = "A generic webservice for interactive query expansion, expansion is provided via various modules")
@@ -91,6 +93,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(query_entrypoint))
+        .route("/modules", get(list_modules))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(state));
@@ -176,6 +179,25 @@ async fn query_entrypoint(
     } else {
         Err(ApiError::MissingArgument("query"))
     }
+}
+
+#[utoipa::path(
+    get,
+    path = "/modules",
+    params(
+    ),
+    responses(
+        (status = 200, description = "Returns all available modules",content(
+            (String = "application/json"),
+        )),
+    )
+)]
+async fn list_modules(state: State<Arc<AppState>>) -> Result<ApiResponse, ApiError> {
+    let mut modules = Vec::new();
+    for module in state.modules.iter() {
+        modules.push(json!({"id": module.id(), "name": module.name(), "type": module.kind()}));
+    }
+    Ok(ApiResponse::Modules(modules))
 }
 
 //TODO: modules endpoint to query available modules
