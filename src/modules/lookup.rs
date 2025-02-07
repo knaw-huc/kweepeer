@@ -38,6 +38,10 @@ pub struct LookupConfig {
     /// Set this if the first line is a header
     #[serde(default)]
     skipfirstline: bool,
+
+    /// Allow numeric fields, otherwise they will be ignored (which is useful to filter out frequency/score information from input files)
+    #[serde(default)]
+    allow_numeric: bool,
 }
 
 fn tab() -> char {
@@ -88,7 +92,14 @@ impl Modular for LookupModule {
                 if let (Some(keyword), Some(variants)) = (iter.next(), iter.next()) {
                     let variants: Vec<_> = variants
                         .splitn(2, self.config.delimiter2)
-                        .map(|s| s.to_owned())
+                        .filter_map(|s| {
+                            //check if field is not purely numeric, ignore if it is
+                            if !self.config.allow_numeric || s.parse::<f64>().is_err() {
+                                Some(s.to_owned())
+                            } else {
+                                None
+                            }
+                        })
                         .collect();
                     self.data.variants.insert(keyword.to_owned(), variants);
                 }
