@@ -1,0 +1,6 @@
+target
+env/
+*~
+Cargo.lock
+.cargo
+test/int_historisch_lexicon*
