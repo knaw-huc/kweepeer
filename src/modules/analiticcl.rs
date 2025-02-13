@@ -1,11 +1,8 @@
 use serde::Deserialize;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 use tracing::{debug, info};
 
-use crate::common::{ApiError, TermExpansion, TermExpansions};
+use crate::common::{TermExpansion, TermExpansions};
 use crate::lexer::Term;
 use crate::modules::{LoadError, Modular};
 
@@ -38,9 +35,6 @@ pub struct AnaliticclConfig {
 
     #[serde(default)]
     weights: Weights,
-
-    #[serde(default)]
-    vocabparams: VocabParams,
 
     /// Alphabet file,
     alphabet: PathBuf,
