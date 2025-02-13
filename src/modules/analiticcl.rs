@@ -122,7 +122,9 @@ impl Modular for AnaliticclModule {
             if let Some(model) = self.model.as_ref() {
                 let mut termexpansion = TermExpansion::default()
                     .with_source(self.config.id.as_str(), self.config.name.as_str());
+                let mut found = false;
                 for variant in model.find_variants(term.as_str(), &self.config.searchparams) {
+                    found = true;
                     let variant_text = &model
                         .decoder
                         .get(variant.vocab_id as usize)
@@ -133,7 +135,9 @@ impl Modular for AnaliticclModule {
                         self.config.searchparams.freq_weight as f64,
                     );
                 }
-                expansions.insert(term.as_str().to_string(), vec![termexpansion]);
+                if found {
+                    expansions.insert(term.as_str().to_string(), vec![termexpansion]);
+                }
             } else {
                 panic!("expand_query() was called before load()!");
             }
