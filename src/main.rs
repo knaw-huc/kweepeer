@@ -21,6 +21,8 @@ mod lexer;
 use common::{ApiError, ApiResponse, TermExpansion, TermExpansions};
 use lexer::Term;
 mod modules;
+use modules::{AnaliticclConfig, AnaliticclModule};
+use modules::{FstConfig, FstModule};
 use modules::{LoadError, Modular, Module};
 use modules::{LookupConfig, LookupModule};
 
@@ -54,6 +56,8 @@ struct AppState {
 #[derive(Deserialize, Default)]
 struct Config {
     lookup: Vec<LookupConfig>,
+    analiticcl: Vec<AnaliticclConfig>,
+    fst: Vec<FstConfig>,
 }
 
 #[derive(OpenApi)]
@@ -211,6 +215,26 @@ impl AppState {
                 lookupconfig.name()
             );
             let mut module = Module::Lookup(LookupModule::new(lookupconfig.clone()));
+            module.load()?;
+            self.modules.push(module);
+        }
+        for fstconfig in self.config.fst.iter() {
+            info!(
+                "Adding Fst module {} - {}",
+                fstconfig.id(),
+                fstconfig.name()
+            );
+            let mut module = Module::Fst(FstModule::new(fstconfig.clone()));
+            module.load()?;
+            self.modules.push(module);
+        }
+        for analiticclconfig in self.config.analiticcl.iter() {
+            info!(
+                "Adding Analiticcl module {} - {}",
+                analiticclconfig.id(),
+                analiticclconfig.name()
+            );
+            let mut module = Module::Analiticcl(AnaliticclModule::new(analiticclconfig.clone()));
             module.load()?;
             self.modules.push(module);
         }

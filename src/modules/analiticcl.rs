@@ -56,12 +56,31 @@ pub struct AnaliticclConfig {
     searchparams: SearchParameters,
 }
 
+impl AnaliticclConfig {
+    pub fn id(&self) -> &str {
+        self.id.as_str()
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+}
+
 /// A lexical module using anagram-based hashing
 pub struct AnaliticclModule {
     config: AnaliticclConfig,
 
     /// the Variant Model from Analiticcl. None whilst not loaded yet.
     model: Option<VariantModel>,
+}
+
+impl AnaliticclModule {
+    pub fn new(config: AnaliticclConfig) -> Self {
+        Self {
+            config,
+            model: None,
+        }
+    }
 }
 
 impl Modular for AnaliticclModule {
