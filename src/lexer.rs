@@ -79,7 +79,10 @@ mod tests {
     #[test]
     pub fn test001_lexer_singular() {
         let terms = Term::extract_from_query("foo");
-        assert_eq!(terms, vec!(Term::Singular("foo".into())))
+        assert_eq!(
+            terms,
+            (vec!(Term::Singular("foo".into())), "{{foo}}".into())
+        )
     }
 
     #[test]
@@ -87,14 +90,20 @@ mod tests {
         let terms = Term::extract_from_query("foo bar");
         assert_eq!(
             terms,
-            vec!(Term::Singular("foo".into()), Term::Singular("bar".into()))
+            (
+                vec!(Term::Singular("foo".into()), Term::Singular("bar".into())),
+                "{{foo}} {{bar}}".into()
+            )
         )
     }
 
     #[test]
     pub fn test003_lexer_phrase() {
         let terms = Term::extract_from_query("\"foo bar\"");
-        assert_eq!(terms, vec!(Term::Phrase("foo bar".into())))
+        assert_eq!(
+            terms,
+            (vec!(Term::Phrase("foo bar".into())), "{{foo bar}}".into())
+        )
     }
 
     #[test]
@@ -102,7 +111,10 @@ mod tests {
         let terms = Term::extract_from_query("foo \"foo bar\"");
         assert_eq!(
             terms,
-            vec!(Term::Singular("foo".into()), Term::Phrase("foo bar".into()))
+            (
+                vec!(Term::Singular("foo".into()), Term::Phrase("foo bar".into())),
+                "{{foo}} {{foo bar}}".into()
+            )
         )
     }
 
@@ -111,7 +123,10 @@ mod tests {
         let terms = Term::extract_from_query("\"foo bar\" foo");
         assert_eq!(
             terms,
-            vec!(Term::Phrase("foo bar".into()), Term::Singular("foo".into()))
+            (
+                vec!(Term::Phrase("foo bar".into()), Term::Singular("foo".into())),
+                "{{foo bar}} {{foo}}".into()
+            )
         )
     }
 
@@ -120,7 +135,10 @@ mod tests {
         let terms = Term::extract_from_query("\"foo bar\" \"bar foo\"");
         assert_eq!(
             terms,
-            vec!(Term::Phrase("foo bar".into()), Term::Phrase("bar foo"))
+            (
+                vec!(Term::Phrase("foo bar".into()), Term::Phrase("bar foo")),
+                "{{foo bar}} {{bar foo}}".into()
+            )
         )
     }
 
@@ -129,7 +147,10 @@ mod tests {
         let terms = Term::extract_from_query("foo AND bar");
         assert_eq!(
             terms,
-            vec!(Term::Singular("foo".into()), Term::Singular("bar".into()))
+            (
+                vec!(Term::Singular("foo".into()), Term::Singular("bar".into())),
+                "{{foo}} AND {{bar}}".into()
+            )
         )
     }
 
@@ -138,7 +159,10 @@ mod tests {
         let terms = Term::extract_from_query("+foo -bar");
         assert_eq!(
             terms,
-            vec!(Term::Singular("foo".into()), Term::Singular("bar".into()))
+            (
+                vec!(Term::Singular("foo".into()), Term::Singular("bar".into())),
+                "+{{foo}} -{{bar}}".into()
+            )
         )
     }
 
@@ -147,13 +171,22 @@ mod tests {
         let terms = Term::extract_from_query("foo~0.5 bar^3\"");
         assert_eq!(
             terms,
-            vec!(Term::Singular("foo".into()), Term::Singular("bar".into()))
+            (
+                vec!(Term::Singular("foo".into()), Term::Singular("bar".into())),
+                "{{foo}}~0.5 {{bar}}^3".into()
+            )
         )
     }
 
     #[test]
     pub fn test007_lexer_literals() {
         let terms = Term::extract_from_query("\"foo AND bar!\"");
-        assert_eq!(terms, vec!(Term::Phrase("foo AND bar!".into())))
+        assert_eq!(
+            terms,
+            (
+                vec!(Term::Phrase("foo AND bar!".into())),
+                "{{foo and bar!}}".into()
+            )
+        )
     }
 }
