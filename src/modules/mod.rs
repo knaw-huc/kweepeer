@@ -1,3 +1,4 @@
+mod analiticcl;
 mod lookup;
 
 use std::fmt::Display;
@@ -5,6 +6,7 @@ use std::fmt::Display;
 use crate::common::{ApiError, TermExpansions};
 use crate::lexer::Term;
 
+pub use crate::modules::analiticcl::*;
 pub use lookup::*;
 
 pub enum Module {

@@ -172,4 +172,13 @@ impl TermExpansion {
         self.scores = scores;
         self
     }
+
+    pub fn add_variant_with_score(&mut self, expansion: impl Into<String>, score: f64) {
+        self.expansions.push(expansion.into());
+        self.scores.push(score);
+    }
+
+    pub fn add_variant(&mut self, expansion: impl Into<String>) {
+        self.expansions.push(expansion.into());
+    }
 }

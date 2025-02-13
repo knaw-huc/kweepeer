@@ -13,7 +13,7 @@ keywords = [ "text-processing", "query expansion", "search" ]
 [dependencies]
 axum = "0.8.1"
 clap = { version = "4.5.20", features = ["derive"] }
-serde = { version = "1.0.215", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.133"
 tokio = { version = "1.41.0", features = ["macros","rt-multi-thread","signal"] }
 tower = "0.5.1"
@@ -24,3 +24,4 @@ utoipa = { version = "5.3.1", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "9.0", features = ["axum", "vendored"] }
 logos = "0.15.0"
 toml = "0.8.20"
+analiticcl = "0.4.7"
