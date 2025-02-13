@@ -21,44 +21,37 @@ pub enum Term<'a> {
     #[token("(")]
     #[token(")")]
     #[regex(r"[\s\t\n]+")]
+    #[regex(r"[\+\-]")]
     #[regex(r"[\^~][0-9\.]+")]
     #[regex(r"\{.*\}")]
-    None,
+    None(&'a str),
 }
 
 impl<'a> Term<'a> {
     /// Extract terms from a query. Returns the terms and a query template
     /// where terms are marked with `{{` `}}` for easy substitution later.
     pub fn extract_from_query(query: &'a str) -> (Vec<Term<'a>>, String) {
-        //last_offset in bytes
-        let mut last_offset = 0;
         let mut query_template = String::new();
         let terms = Term::lexer(query)
             .into_iter()
-            .filter_map(|term| match term {
-                Err(_) => None,
-                Ok(Term::None) => None,
-                Ok(x) => {
-                    if last_offset > 0 {
-                        let begin = (x.as_str().as_ptr() as usize) - (query.as_ptr() as usize);
-                        if begin > last_offset {
-                            query_template += &query[last_offset..begin];
+            .filter_map(|term| {
+                if let Ok(x) = &term {
+                    match x {
+                        Term::Singular(y) | Term::Phrase(y) => {
+                            query_template += "{{";
+                            query_template += y;
+                            query_template += "}}";
                         }
-                        last_offset = begin + x.as_str().len();
-                    } else {
-                        last_offset += x.as_str().len();
+                        Term::None(y) => query_template += y,
                     }
-                    eprintln!("last_offset={}", last_offset);
-                    query_template += "{{";
-                    query_template += x.as_str();
-                    query_template += "}}";
-                    Some(x)
+                };
+                match term {
+                    Err(_) => None,
+                    Ok(Term::None(_)) => None,
+                    Ok(x) => Some(x),
                 }
             })
             .collect();
-        if last_offset < query.len() {
-            query_template += &query[last_offset..];
-        }
         (terms, query_template)
     }
 
@@ -67,7 +60,7 @@ impl<'a> Term<'a> {
         match self {
             Self::Singular(s) => s,
             Self::Phrase(s) => s,
-            Self::None => "",
+            Self::None(..) => "",
         }
     }
 }
@@ -185,7 +178,7 @@ mod tests {
             terms,
             (
                 vec!(Term::Phrase("foo AND bar!".into())),
-                "{{foo and bar!}}".into()
+                "{{foo AND bar!}}".into()
             )
         )
     }
