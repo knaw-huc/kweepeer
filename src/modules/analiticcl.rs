@@ -253,4 +253,14 @@ mod tests {
         );
         Ok(())
     }
+
+    #[test]
+    pub fn test002_lookup_query_nomatch() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        let terms = vec![Term::Singular("blah")];
+        let expansions = module.expand_query(&terms);
+        assert_eq!(expansions.len(), 0, "Checking number of terms returned");
+        Ok(())
+    }
 }
