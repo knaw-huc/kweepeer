@@ -24,6 +24,15 @@ $ cd kweepeer
 $ cargo install --path .
 ```
 
+Development versions may require a development version of
+[analiticcl](https://github.com/proycon/analiticcl) as well, clone it alongside kweepeer and add a
+`kweepeer/.cargo/config.toml` with:
+
+```toml
+#[dependencies.analiticcl]
+paths = ["../analiticcl"]
+```
+
 ## Architecture
 
 This schema presents an architecture with some proposed expansion modules. The modules
