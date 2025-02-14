@@ -148,3 +148,67 @@ impl Module for LookupModule {
         expansions
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn init_test() -> Result<LookupModule, LoadError> {
+        let mut testfile = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        testfile.push("test");
+        testfile.push("lookup.tsv");
+        Ok(LookupModule::new(LookupConfig {
+            id: "lookup".into(),
+            name: "lookup".into(),
+            file: testfile,
+            delimiter: '\t',
+            delimiter2: '\t',
+            skipfirstline: false,
+            allow_numeric: false,
+        }))
+    }
+
+    #[test]
+    pub fn test001_lookup_load() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        Ok(())
+    }
+
+    #[test]
+    pub fn test002_lookup_query() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        let terms = vec![Term::Singular("separate")];
+        let expansions = module.expand_query(&terms);
+        assert_eq!(expansions.len(), 1, "Checking number of terms returned");
+        let termexpansion = expansions
+            .get("separate")
+            .expect("term must exists")
+            .get(0)
+            .expect("term must have results");
+        assert_eq!(
+            termexpansion.source_id(),
+            Some("lookup"),
+            "Checking source id"
+        );
+        assert_eq!(
+            termexpansion.source_name(),
+            Some("lookup"),
+            "Checking source name"
+        );
+        assert_eq!(
+            termexpansion.iter().collect::<Vec<_>>(),
+            vec!(
+                "separated",
+                "separates",
+                "split",
+                "apart",
+                "divide",
+                "divided"
+            ),
+            "Checking returned expansions"
+        );
+        Ok(())
+    }
+}

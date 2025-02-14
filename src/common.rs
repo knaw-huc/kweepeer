@@ -181,4 +181,32 @@ impl TermExpansion {
     pub fn add_variant(&mut self, expansion: impl Into<String>) {
         self.expansions.push(expansion.into());
     }
+
+    pub fn expansions(&self) -> &Vec<String> {
+        &self.expansions
+    }
+
+    pub fn scores(&self) -> &Vec<f64> {
+        &self.scores
+    }
+
+    pub fn source_id(&self) -> Option<&str> {
+        self.source_id.as_deref()
+    }
+
+    pub fn source_name(&self) -> Option<&str> {
+        self.source_name.as_deref()
+    }
+
+    pub fn link(&self) -> Option<&str> {
+        self.link.as_deref()
+    }
+
+    pub fn len(&self) -> usize {
+        self.expansions.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &str> {
+        self.expansions.iter().map(|x| x.as_str())
+    }
 }
