@@ -204,8 +204,6 @@ async fn list_modules(state: State<Arc<AppState>>) -> Result<ApiResponse, ApiErr
     Ok(ApiResponse::Modules(modules))
 }
 
-//TODO: modules endpoint to query available modules
-
 impl AppState {
     fn load(&mut self) -> Result<(), LoadError> {
         //MAYBE TODO: we could parallellize the loading for quicker startup time
