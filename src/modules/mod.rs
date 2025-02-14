@@ -1,33 +1,28 @@
-mod analiticcl;
-mod fst;
-mod lookup;
+pub mod analiticcl;
+pub mod fst;
+pub mod lookup;
 
-use crate::common::TermExpansions;
 use crate::lexer::Term;
+use crate::{Error, QueryParams, TermExpansions};
 
-pub use crate::modules::analiticcl::*;
-pub use crate::modules::fst::*;
-pub use lookup::*;
-
-#[derive(Debug, Clone)]
-pub struct LoadError(String);
-
+/// This trait is implemented for all query expansions modules
 pub trait Module: Send + Sync {
+    /// Get the module type
     fn kind(&self) -> &'static str;
-    fn load(&mut self) -> Result<(), LoadError>;
+
+    /// Get the module identifier, some arbititrary short string
     fn id(&self) -> &str;
+
+    /// Get the module name, a human-readable label
     fn name(&self) -> &str;
-    fn expand_query(&self, terms: &Vec<Term>) -> TermExpansions;
-}
 
-impl From<std::io::Error> for LoadError {
-    fn from(value: std::io::Error) -> Self {
-        LoadError(format!("{}", value))
-    }
-}
+    /// Load the module. This *MUST* be called (once) prior to calling *expand_query()*.
+    fn load(&mut self) -> Result<(), Error>;
 
-impl std::fmt::Display for LoadError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0.as_str())
-    }
+    /// Expands a (decomposed) query. Note that `load()` *MUST* be called (once) prior to calling this for the first time, otherwise it will result in a panic.
+    fn expand_query(
+        &self,
+        terms: &Vec<Term>,
+        queryparams: &QueryParams,
+    ) -> Result<TermExpansions, Error>;
 }

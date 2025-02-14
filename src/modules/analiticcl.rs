@@ -2,9 +2,9 @@ use serde::Deserialize;
 use std::path::PathBuf;
 use tracing::{debug, info};
 
-use crate::common::{TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Module};
+use crate::modules::Module;
+use crate::{Error, QueryParams, TermExpansion, TermExpansions};
 
 use analiticcl::{SearchParameters, VariantModel, VocabParams, Weights};
 
@@ -121,7 +121,7 @@ impl Module for AnaliticclModule {
         "analiticcl"
     }
 
-    fn load(&mut self) -> Result<(), LoadError> {
+    fn load(&mut self) -> Result<(), Error> {
         let mut model = VariantModel::new(
             &self.config.alphabet.to_string_lossy(),
             self.config.weights.clone(),
@@ -159,7 +159,12 @@ impl Module for AnaliticclModule {
         Ok(())
     }
 
-    fn expand_query(&self, terms: &Vec<Term>) -> TermExpansions {
+    fn expand_query(
+        &self,
+        terms: &Vec<Term>,
+        params: &QueryParams,
+    ) -> Result<TermExpansions, Error> {
+        //TODO: construct analiticcl searchparams from params
         let mut expansions = TermExpansions::new();
         for term in terms {
             debug!("Looking up {}", term.as_str());
@@ -186,7 +191,7 @@ impl Module for AnaliticclModule {
                 panic!("expand_query() was called before load()!");
             }
         }
-        expansions
+        Ok(expansions)
     }
 }
 
@@ -194,7 +199,7 @@ impl Module for AnaliticclModule {
 mod tests {
     use super::*;
 
-    fn init_test() -> Result<AnaliticclModule, LoadError> {
+    fn init_test() -> Result<AnaliticclModule, Error> {
         let mut testdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         testdir.push("test");
         let mut alphabet_file = testdir.clone();
@@ -207,18 +212,18 @@ mod tests {
     }
 
     #[test]
-    pub fn test001_lookup_load() -> Result<(), LoadError> {
+    pub fn test001_lookup_load() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         Ok(())
     }
 
     #[test]
-    pub fn test002_lookup_query() -> Result<(), LoadError> {
+    pub fn test002_lookup_query() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("belangrijk")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::default())?;
         assert_eq!(expansions.len(), 1, "Checking number of terms returned");
         let termexpansion = expansions
             .get("belangrijk")
@@ -255,11 +260,11 @@ mod tests {
     }
 
     #[test]
-    pub fn test002_lookup_query_nomatch() -> Result<(), LoadError> {
+    pub fn test002_lookup_query_nomatch() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("blah")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::default())?;
         assert_eq!(expansions.len(), 0, "Checking number of terms returned");
         Ok(())
     }

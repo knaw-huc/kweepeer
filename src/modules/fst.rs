@@ -7,9 +7,9 @@ use tracing::{debug, info};
 use fst::automaton::Levenshtein;
 use fst::{IntoStreamer, Set, SetBuilder};
 
-use crate::common::{TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Module};
+use crate::modules::Module;
+use crate::{Error, QueryParams, TermExpansion, TermExpansions};
 
 /// A simple hash-map-based lookup module
 /// mapping keywords to variants.
@@ -94,7 +94,7 @@ impl Module for FstModule {
         "fst"
     }
 
-    fn load(&mut self) -> Result<(), LoadError> {
+    fn load(&mut self) -> Result<(), Error> {
         info!("Loading lexicon {}", self.config.file.as_path().display());
         let file = File::open(self.config.file.as_path())?;
         let mut buffer = String::new();
@@ -126,7 +126,12 @@ impl Module for FstModule {
         Ok(())
     }
 
-    fn expand_query(&self, terms: &Vec<Term>) -> TermExpansions {
+    fn expand_query(
+        &self,
+        terms: &Vec<Term>,
+        params: &QueryParams,
+    ) -> Result<TermExpansions, Error> {
+        //TODO: get distance from params
         let mut expansions = TermExpansions::new();
         for term in terms {
             match Levenshtein::new(term.as_str(), self.config.distance as u32) {
@@ -152,26 +157,26 @@ impl Module for FstModule {
                 Err(e) => debug!("Can't build FST for term '{}': {}", term.as_str(), e),
             }
         }
-        expansions
+        Ok(expansions)
     }
 }
 
-impl From<fst::Error> for LoadError {
+impl From<fst::Error> for Error {
     fn from(value: fst::Error) -> Self {
-        LoadError(format!("{}", value))
+        Self::LoadError(format!("{}", value))
     }
 }
 
-impl From<fst::automaton::LevenshteinError> for LoadError {
+impl From<fst::automaton::LevenshteinError> for Error {
     fn from(value: fst::automaton::LevenshteinError) -> Self {
-        LoadError(format!("{}", value))
+        Self::QueryExpandError(format!("{}", value))
     }
 }
 
 mod tests {
     use super::*;
 
-    fn init_test() -> Result<FstModule, LoadError> {
+    fn init_test() -> Result<FstModule, Error> {
         let mut testdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         testdir.push("test");
         let mut lexicon_file = testdir.clone();
@@ -187,18 +192,18 @@ mod tests {
     }
 
     #[test]
-    pub fn test001_lookup_load() -> Result<(), LoadError> {
+    pub fn test001_lookup_load() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         Ok(())
     }
 
     #[test]
-    pub fn test002_lookup_query() -> Result<(), LoadError> {
+    pub fn test002_lookup_query() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("belangrijk")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::new())?;
         assert_eq!(expansions.len(), 1, "Checking number of terms returned");
         let termexpansion = expansions
             .get("belangrijk")
@@ -227,11 +232,11 @@ mod tests {
     }
 
     #[test]
-    pub fn test002_lookup_query_nomatch() -> Result<(), LoadError> {
+    pub fn test002_lookup_query_nomatch() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("blah")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::new())?;
         assert_eq!(expansions.len(), 0, "Checking number of terms returned");
         Ok(())
     }

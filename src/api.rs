@@ -7,12 +7,7 @@ use serde::ser::SerializeStruct;
 use serde::Serialize;
 use serde_json::value::Value;
 
-use crate::lexer::Term;
-
-use std::collections::HashMap;
-
-/// Maps a term to expansions, each `TermExpansion` corresponds to one source/module and may itself contain multiple expansions
-pub type TermExpansions = HashMap<String, Vec<TermExpansion>>;
+use crate::{Error, TermExpansions};
 
 #[derive(Debug)]
 pub enum ApiResponse {
@@ -89,6 +84,7 @@ pub enum ApiError {
     NotAcceptable(&'static str),
     PermissionDenied(&'static str),
     MissingArgument(&'static str),
+    Error(Error),
 }
 
 impl Serialize for ApiError {
@@ -119,6 +115,10 @@ impl Serialize for ApiError {
                 state.serialize_field("name", "MissingArgument")?;
                 state.serialize_field("message", s)?;
             }
+            Self::Error(s) => {
+                state.serialize_field("name", "Error")?;
+                state.serialize_field("message", s)?;
+            }
         }
         state.end()
     }
@@ -142,71 +142,9 @@ impl From<axum::Error> for ApiError {
     }
 }
 
-#[derive(Debug, Serialize, Default, Clone)]
-pub struct TermExpansion {
-    expansions: Vec<String>,
-    scores: Vec<f64>,
-    source_id: Option<String>,
-    source_name: Option<String>,
-    link: Option<String>,
-}
-
-impl TermExpansion {
-    pub fn with_source(mut self, id: impl Into<String>, name: impl Into<String>) -> Self {
-        self.source_id = Some(id.into());
-        self.source_name = Some(name.into());
-        self
-    }
-
-    pub fn with_link(mut self, link: impl Into<String>) -> Self {
-        self.link = Some(link.into());
-        self
-    }
-
-    pub fn with_expansions(mut self, expansions: Vec<String>) -> Self {
-        self.expansions = expansions;
-        self
-    }
-
-    pub fn with_scores(mut self, scores: Vec<f64>) -> Self {
-        self.scores = scores;
-        self
-    }
-
-    pub fn add_variant_with_score(&mut self, expansion: impl Into<String>, score: f64) {
-        self.expansions.push(expansion.into());
-        self.scores.push(score);
-    }
-
-    pub fn add_variant(&mut self, expansion: impl Into<String>) {
-        self.expansions.push(expansion.into());
-    }
-
-    pub fn expansions(&self) -> &Vec<String> {
-        &self.expansions
-    }
-
-    pub fn scores(&self) -> &Vec<f64> {
-        &self.scores
-    }
-
-    pub fn source_id(&self) -> Option<&str> {
-        self.source_id.as_deref()
-    }
-
-    pub fn source_name(&self) -> Option<&str> {
-        self.source_name.as_deref()
-    }
-
-    pub fn link(&self) -> Option<&str> {
-        self.link.as_deref()
-    }
-
-    pub fn len(&self) -> usize {
-        self.expansions.len()
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &str> {
-        self.expansions.iter().map(|x| x.as_str())
+//encapsulate our own library errors
+impl From<Error> for ApiError {
+    fn from(e: Error) -> Self {
+        Self::Error(e)
     }
 }

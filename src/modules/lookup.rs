@@ -5,9 +5,9 @@ use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 use tracing::{debug, info};
 
-use crate::common::{ApiError, TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Module};
+use crate::modules::Module;
+use crate::{Error, QueryParams, TermExpansion, TermExpansions};
 
 /// A simple hash-map-based lookup module
 /// mapping keywords to variants.
@@ -86,7 +86,7 @@ impl Module for LookupModule {
         "lookup"
     }
 
-    fn load(&mut self) -> Result<(), LoadError> {
+    fn load(&mut self) -> Result<(), Error> {
         info!("Loading lexicon {}", self.config.file.as_path().display());
         let file = File::open(self.config.file.as_path())?;
         let mut buffer = String::new();
@@ -129,7 +129,11 @@ impl Module for LookupModule {
         Ok(())
     }
 
-    fn expand_query(&self, terms: &Vec<Term>) -> TermExpansions {
+    fn expand_query(
+        &self,
+        terms: &Vec<Term>,
+        _params: &QueryParams,
+    ) -> Result<TermExpansions, Error> {
         let mut expansions = TermExpansions::new();
         for term in terms {
             debug!("Looking up {}", term.as_str());
@@ -145,7 +149,7 @@ impl Module for LookupModule {
                 debug!("not found");
             }
         }
-        expansions
+        Ok(expansions)
     }
 }
 
@@ -153,7 +157,7 @@ impl Module for LookupModule {
 mod tests {
     use super::*;
 
-    fn init_test() -> Result<LookupModule, LoadError> {
+    fn init_test() -> Result<LookupModule, Error> {
         let mut testfile = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         testfile.push("test");
         testfile.push("lookup.tsv");
@@ -169,18 +173,18 @@ mod tests {
     }
 
     #[test]
-    pub fn test001_lookup_load() -> Result<(), LoadError> {
+    pub fn test001_lookup_load() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         Ok(())
     }
 
     #[test]
-    pub fn test002_lookup_query() -> Result<(), LoadError> {
+    pub fn test002_lookup_query() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("separate")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::default())?;
         assert_eq!(expansions.len(), 1, "Checking number of terms returned");
         let termexpansion = expansions
             .get("separate")
@@ -213,11 +217,11 @@ mod tests {
     }
 
     #[test]
-    pub fn test002_lookup_query_nomatch() -> Result<(), LoadError> {
+    pub fn test002_lookup_query_nomatch() -> Result<(), Error> {
         let mut module = init_test()?;
         module.load()?;
         let terms = vec![Term::Singular("blah")];
-        let expansions = module.expand_query(&terms);
+        let expansions = module.expand_query(&terms, &QueryParams::default())?;
         assert_eq!(expansions.len(), 0, "Checking number of terms returned");
         Ok(())
     }
