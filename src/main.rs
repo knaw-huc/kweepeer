@@ -23,7 +23,7 @@ use lexer::Term;
 mod modules;
 use modules::{AnaliticclConfig, AnaliticclModule};
 use modules::{FstConfig, FstModule};
-use modules::{LoadError, Modular, Module};
+use modules::{LoadError, Module};
 use modules::{LookupConfig, LookupModule};
 
 #[derive(Parser, Debug, Clone)]
@@ -50,7 +50,7 @@ struct Args {
 struct AppState {
     args: Args,
     config: Config,
-    modules: Vec<Module>,
+    modules: Vec<Box<dyn Module>>,
 }
 
 #[derive(Deserialize, Default)]
@@ -214,9 +214,9 @@ impl AppState {
                 lookupconfig.id(),
                 lookupconfig.name()
             );
-            let mut module = Module::Lookup(LookupModule::new(lookupconfig.clone()));
+            let mut module = LookupModule::new(lookupconfig.clone());
             module.load()?;
-            self.modules.push(module);
+            self.modules.push(Box::new(module));
         }
         for fstconfig in self.config.fst.iter() {
             info!(
@@ -224,9 +224,9 @@ impl AppState {
                 fstconfig.id(),
                 fstconfig.name()
             );
-            let mut module = Module::Fst(FstModule::new(fstconfig.clone()));
+            let mut module = FstModule::new(fstconfig.clone());
             module.load()?;
-            self.modules.push(module);
+            self.modules.push(Box::new(module));
         }
         for analiticclconfig in self.config.analiticcl.iter() {
             info!(
@@ -234,9 +234,9 @@ impl AppState {
                 analiticclconfig.id(),
                 analiticclconfig.name()
             );
-            let mut module = Module::Analiticcl(AnaliticclModule::new(analiticclconfig.clone()));
+            let mut module = AnaliticclModule::new(analiticclconfig.clone());
             module.load()?;
-            self.modules.push(module);
+            self.modules.push(Box::new(module));
         }
         info!("All modules loaded");
         Ok(())

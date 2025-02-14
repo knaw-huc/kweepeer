@@ -9,7 +9,7 @@ use fst::{IntoStreamer, Set, SetBuilder};
 
 use crate::common::{TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Modular};
+use crate::modules::{LoadError, Module};
 
 /// A simple hash-map-based lookup module
 /// mapping keywords to variants.
@@ -56,7 +56,7 @@ impl FstModule {
     }
 }
 
-impl Modular for FstModule {
+impl Module for FstModule {
     fn id(&self) -> &str {
         self.config.id.as_str()
     }

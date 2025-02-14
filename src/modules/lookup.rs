@@ -7,7 +7,7 @@ use tracing::{debug, info};
 
 use crate::common::{ApiError, TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Modular};
+use crate::modules::{LoadError, Module};
 
 /// A simple hash-map-based lookup module
 /// mapping keywords to variants.
@@ -73,7 +73,7 @@ impl LookupModule {
     }
 }
 
-impl Modular for LookupModule {
+impl Module for LookupModule {
     fn id(&self) -> &str {
         self.config.id.as_str()
     }

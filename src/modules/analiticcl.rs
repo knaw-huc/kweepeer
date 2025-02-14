@@ -4,7 +4,7 @@ use tracing::{debug, info};
 
 use crate::common::{TermExpansion, TermExpansions};
 use crate::lexer::Term;
-use crate::modules::{LoadError, Modular};
+use crate::modules::{LoadError, Module};
 
 use analiticcl::{SearchParameters, VariantModel, VocabParams, Weights};
 
@@ -83,7 +83,7 @@ impl AnaliticclModule {
     }
 }
 
-impl Modular for AnaliticclModule {
+impl Module for AnaliticclModule {
     fn id(&self) -> &str {
         self.config.id.as_str()
     }
