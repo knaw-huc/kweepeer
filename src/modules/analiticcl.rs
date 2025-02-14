@@ -57,6 +57,31 @@ pub struct AnaliticclConfig {
 }
 
 impl AnaliticclConfig {
+    pub fn new(
+        id: impl Into<String>,
+        name: impl Into<String>,
+        alphabet: impl Into<PathBuf>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            name: name.into(),
+            alphabet: alphabet.into(),
+            weights: Weights::default(),
+            lexicons: Vec::new(),
+            variantlists: Vec::new(),
+            confusable_lists: Vec::new(),
+            searchparams: SearchParameters::default(),
+        }
+    }
+
+    pub fn with_lexicon(mut self, filename: impl Into<PathBuf>, params: VocabParams) -> Self {
+        self.lexicons.push(Lexicon {
+            filename: filename.into(),
+            params,
+        });
+        self
+    }
+
     pub fn id(&self) -> &str {
         self.id.as_str()
     }
@@ -162,5 +187,70 @@ impl Module for AnaliticclModule {
             }
         }
         expansions
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn init_test() -> Result<AnaliticclModule, LoadError> {
+        let mut testdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        testdir.push("test");
+        let mut alphabet_file = testdir.clone();
+        alphabet_file.push("simple.alphabet.tsv");
+        let mut lexicon_file = testdir.clone();
+        lexicon_file.push("test.freq.lexicon");
+        let config = AnaliticclConfig::new("analiticcl", "analiticcl", alphabet_file)
+            .with_lexicon(lexicon_file, VocabParams::default());
+        Ok(AnaliticclModule::new(config))
+    }
+
+    #[test]
+    pub fn test001_lookup_load() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        Ok(())
+    }
+
+    #[test]
+    pub fn test002_lookup_query() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        let terms = vec![Term::Singular("belangrijk")];
+        let expansions = module.expand_query(&terms);
+        assert_eq!(expansions.len(), 1, "Checking number of terms returned");
+        let termexpansion = expansions
+            .get("belangrijk")
+            .expect("term must exists")
+            .get(0)
+            .expect("term must have results");
+        assert_eq!(
+            termexpansion.source_id(),
+            Some("analiticcl"),
+            "Checking source id"
+        );
+        assert_eq!(
+            termexpansion.source_name(),
+            Some("analiticcl"),
+            "Checking source name"
+        );
+        assert_eq!(
+            termexpansion.iter().collect::<Vec<_>>(),
+            [
+                "belangrijk",
+                "belangrijke",
+                "belangrijks",
+                "belangrijker",
+                "onbelangrijk",
+                "belangrijkst",
+                "belangrijkste",
+                "belangrijkere",
+                "belangrijkers",
+                "onbelangrijke",
+            ],
+            "Checking returned expansions"
+        );
+        Ok(())
     }
 }
