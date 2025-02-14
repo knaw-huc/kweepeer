@@ -208,6 +208,7 @@ async fn list_modules(state: State<Arc<AppState>>) -> Result<ApiResponse, ApiErr
 
 impl AppState {
     fn load(&mut self) -> Result<(), LoadError> {
+        //MAYBE TODO: we could parallellize the loading for quicker startup time
         for lookupconfig in self.config.lookup.iter() {
             info!(
                 "Adding Lookup module {} - {}",
