@@ -38,6 +38,31 @@ pub struct FstConfig {
 }
 
 impl FstConfig {
+    pub fn new(
+        id: impl Into<String>,
+        name: impl Into<String>,
+        file: impl Into<PathBuf>,
+        distance: u8,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            name: name.into(),
+            file: file.into(),
+            distance,
+            skipfirstline: false,
+        }
+    }
+
+    pub fn with_distance(mut self, distance: u8) -> Self {
+        self.distance = distance;
+        self
+    }
+
+    pub fn with_skipfirstline(mut self) -> Self {
+        self.skipfirstline = true;
+        self
+    }
+
     pub fn id(&self) -> &str {
         self.id.as_str()
     }
@@ -140,5 +165,74 @@ impl From<fst::Error> for LoadError {
 impl From<fst::automaton::LevenshteinError> for LoadError {
     fn from(value: fst::automaton::LevenshteinError) -> Self {
         LoadError(format!("{}", value))
+    }
+}
+
+mod tests {
+    use super::*;
+
+    fn init_test() -> Result<FstModule, LoadError> {
+        let mut testdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        testdir.push("test");
+        let mut lexicon_file = testdir.clone();
+        lexicon_file.push("test.nofreq.lexicon");
+        let config = FstConfig {
+            id: "fst".into(),
+            name: "fst".into(),
+            file: lexicon_file,
+            distance: 2,
+            skipfirstline: false,
+        };
+        Ok(FstModule::new(config))
+    }
+
+    #[test]
+    pub fn test001_lookup_load() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        Ok(())
+    }
+
+    #[test]
+    pub fn test002_lookup_query() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        let terms = vec![Term::Singular("belangrijk")];
+        let expansions = module.expand_query(&terms);
+        assert_eq!(expansions.len(), 1, "Checking number of terms returned");
+        let termexpansion = expansions
+            .get("belangrijk")
+            .expect("term must exists")
+            .get(0)
+            .expect("term must have results");
+        assert_eq!(termexpansion.source_id(), Some("fst"), "Checking source id");
+        assert_eq!(
+            termexpansion.source_name(),
+            Some("fst"),
+            "Checking source name"
+        );
+        assert_eq!(
+            termexpansion.iter().collect::<Vec<_>>(),
+            [
+                "belangrijk",
+                "belangrijke",
+                "belangrijker",
+                "belangrijks",
+                "belangrijkst",
+                "onbelangrijk"
+            ],
+            "Checking returned expansions"
+        );
+        Ok(())
+    }
+
+    #[test]
+    pub fn test002_lookup_query_nomatch() -> Result<(), LoadError> {
+        let mut module = init_test()?;
+        module.load()?;
+        let terms = vec![Term::Singular("blah")];
+        let expansions = module.expand_query(&terms);
+        assert_eq!(expansions.len(), 0, "Checking number of terms returned");
+        Ok(())
     }
 }
