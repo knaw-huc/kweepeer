@@ -164,7 +164,78 @@ impl Module for AnaliticclModule {
         terms: &Vec<Term>,
         params: &QueryParams,
     ) -> Result<TermExpansions, Error> {
-        //TODO: construct analiticcl searchparams from params
+        //construct analiticcl searchparams from params
+        let searchparams: Option<SearchParameters> =
+            if params.iter_for_module(self.id()).next().is_some() {
+                let mut searchparams: SearchParameters = self.config.searchparams.clone();
+                for param in params.iter_for_module(self.id()) {
+                    match param.key() {
+                        "max_matches" => {
+                            searchparams = searchparams.with_max_matches(
+                                param.value().as_u64().ok_or_else(|| {
+                                    Error::QueryExpandError(
+                                        "invalid value for max_matches parameter".into(),
+                                    )
+                                })? as usize,
+                            )
+                        }
+                        "edit_distance" => {
+                            //MAYBE TODO: absolute threshold only for now
+                            searchparams = searchparams.with_edit_distance(
+                                analiticcl::DistanceThreshold::Absolute(
+                                    param.value().as_u64().ok_or_else(|| {
+                                        Error::QueryExpandError(
+                                            "invalid value for edit_distance parameter".into(),
+                                        )
+                                    })? as u8,
+                                ),
+                            )
+                        }
+                        "anagram_distance" => {
+                            //MAYBE TODO: absolute threshold only for now
+                            searchparams = searchparams.with_anagram_distance(
+                                analiticcl::DistanceThreshold::Absolute(
+                                    param.value().as_u64().ok_or_else(|| {
+                                        Error::QueryExpandError(
+                                            "invalid value for anagram_distance parameter".into(),
+                                        )
+                                    })? as u8,
+                                ),
+                            )
+                        }
+                        "score_threshold" => {
+                            searchparams = searchparams.with_score_threshold(
+                                param.value().as_f64().ok_or_else(|| {
+                                    Error::QueryExpandError(
+                                        "invalid value for edit_distance parameter".into(),
+                                    )
+                                })? as f64,
+                            )
+                        }
+                        "cutoff_threshold" => {
+                            searchparams = searchparams.with_cutoff_threshold(
+                                param.value().as_f64().ok_or_else(|| {
+                                    Error::QueryExpandError(
+                                        "invalid value for cutoff_threshold parameter".into(),
+                                    )
+                                })? as f64,
+                            )
+                        }
+                        //TODO: parse remaining analiticcl parameters
+                        x => {
+                            return Err(Error::QueryExpandError(format!(
+                                "Got unexpected parameter for analiticcl: {}",
+                                x
+                            )))
+                        }
+                    }
+                }
+                Some(searchparams)
+            } else {
+                //no search parameters specified, we fall back to borrowing the config default later
+                None
+            };
+
         let mut expansions = TermExpansions::new();
         for term in terms {
             debug!("Looking up {}", term.as_str());
@@ -172,7 +243,14 @@ impl Module for AnaliticclModule {
                 let mut termexpansion = TermExpansion::default()
                     .with_source(self.config.id.as_str(), self.config.name.as_str());
                 let mut found = false;
-                for variant in model.find_variants(term.as_str(), &self.config.searchparams) {
+                for variant in model.find_variants(
+                    term.as_str(),
+                    if let Some(searchparams) = searchparams.as_ref() {
+                        searchparams
+                    } else {
+                        &self.config.searchparams
+                    },
+                ) {
                     found = true;
                     let variant_text = &model
                         .decoder

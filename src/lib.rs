@@ -322,6 +322,16 @@ impl QueryParams {
         self.0.iter()
     }
 
+    /// Iterate over all keys and values
+    pub fn iter_for_module<'a>(
+        &'a self,
+        module_id: &'a str,
+    ) -> impl Iterator<Item = &'a QueryParam> {
+        self.0
+            .iter()
+            .filter(move |param| param.module_id() == module_id)
+    }
+
     /// Retrieve a value by key
     /// By convention, we use an empty module_id for a global scope.
     pub fn get<'a>(&'a self, module_id: &str, key: &str) -> Option<&'a Value> {
