@@ -26,6 +26,7 @@ pub struct QueryExpander {
 }
 
 #[derive(Deserialize, Default)]
+#[serde(default)]
 pub struct Config {
     lookup: Vec<LookupConfig>,
     analiticcl: Vec<AnaliticclConfig>,
