@@ -8,8 +8,12 @@ pub mod apidocs;
 pub mod lexer;
 pub mod modules;
 
+#[cfg(feature = "analiticcl")]
 use modules::analiticcl::{AnaliticclConfig, AnaliticclModule};
+
+#[cfg(feature = "fst")]
 use modules::fst::{FstConfig, FstModule};
+
 use modules::lookup::{LookupConfig, LookupModule};
 use modules::Module;
 
@@ -29,7 +33,11 @@ pub struct QueryExpander {
 #[serde(default)]
 pub struct Config {
     lookup: Vec<LookupConfig>,
+
+    #[cfg(feature = "analiticcl")]
     analiticcl: Vec<AnaliticclConfig>,
+
+    #[cfg(feature = "fst")]
     fst: Vec<FstConfig>,
 }
 
@@ -78,6 +86,8 @@ impl QueryExpander {
             module.load()?;
             self.modules.push(Box::new(module));
         }
+
+        #[cfg(feature = "fst")]
         for fstconfig in self.config.fst.iter() {
             info!(
                 "Adding Fst module {} - {}",
@@ -88,6 +98,8 @@ impl QueryExpander {
             module.load()?;
             self.modules.push(Box::new(module));
         }
+
+        #[cfg(feature = "analiticcl")]
         for analiticclconfig in self.config.analiticcl.iter() {
             info!(
                 "Adding Analiticcl module {} - {}",
@@ -98,6 +110,7 @@ impl QueryExpander {
             module.load()?;
             self.modules.push(Box::new(module));
         }
+
         info!("All modules loaded");
         self.initialised = true;
         Ok(())

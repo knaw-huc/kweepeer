@@ -1,6 +1,10 @@
-pub mod analiticcl;
-pub mod fst;
 pub mod lookup;
+
+#[cfg(feature = "analiticcl")]
+pub mod analiticcl;
+
+#[cfg(feature = "fst")]
+pub mod fst;
 
 use crate::lexer::Term;
 use crate::{Error, QueryParams, TermExpansions};
