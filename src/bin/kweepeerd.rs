@@ -111,18 +111,6 @@ async fn query_entrypoint(
     Query(params): Query<HashMap<String, String>>,
     state: State<Arc<QueryExpander>>,
 ) -> Result<ApiResponse, ApiError> {
-    let excludemods: Vec<_> = params
-        .get("exclude")
-        .into_iter()
-        .map(|v| v.split(","))
-        .flatten()
-        .collect();
-    let includemods: Vec<_> = params
-        .get("include")
-        .into_iter()
-        .map(|v| v.split(","))
-        .flatten()
-        .collect();
     if let Some(querystring) = params.get("q") {
         let mut terms_map = TermExpansions::new();
         let (terms, query_template) = Term::extract_from_query(querystring);
