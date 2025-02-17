@@ -334,6 +334,21 @@ impl QueryParams {
     }
 }
 
+impl From<&HashMap<String, String>> for QueryParams {
+    fn from(map: &HashMap<String, String>) -> Self {
+        let mut result = QueryParams::new();
+        for (key, value) in map.iter() {
+            let splitkey: Vec<_> = key.splitn(2, key).collect();
+            if splitkey.len() == 1 {
+                result.insert("", key, value.to_owned().into());
+            } else {
+                result.insert(splitkey[0], splitkey[1], value.to_owned().into());
+            }
+        }
+        result
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Error {
     LoadError(String),

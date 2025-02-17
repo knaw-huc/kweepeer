@@ -1,15 +1,14 @@
 use axum::{
-    body::Body, extract::Path, extract::Query, extract::State, http::HeaderMap, http::HeaderValue,
-    http::Request, routing::get, routing::post, Form, Router,
+    extract::Path, extract::Query, extract::State, http::HeaderMap, http::HeaderValue,
+    http::Request, routing::get, Form, Router,
 };
 use clap::Parser;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 use tracing::{debug, error, info};
 
-use serde::Deserialize;
 use serde_json::json;
 use toml;
 use utoipa::OpenApi;
@@ -114,7 +113,7 @@ async fn query_entrypoint(
     if let Some(querystring) = params.get("q") {
         let mut terms_map = TermExpansions::new();
         let (terms, query_template) = Term::extract_from_query(querystring);
-        let params = QueryParams::default(); //TODO: parse parameters from request!
+        let params: QueryParams = (&params).into();
         state.expand_query_into(&mut terms_map, &terms, &params)?;
         Ok(ApiResponse::new_queryexpansion(
             terms_map,
