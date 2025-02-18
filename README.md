@@ -4,7 +4,8 @@
 
 The Globalise project requests an interactive query expansion webservice which expands terms in search queries with available synonyms and other suggestions. These expansions are returned to the caller, for display in a user interface, and the caller has control over which suggestions to accept or discard, offering a high degree of control over the final query. Please see [the original plan](PLAN.md) for details and initial discussion.
 
-This repository holds the backend service that provides query expansion, it is called *Kweepeer* (pronounceas /ˈkʋe.pɪːr/ or  /ˈkwe.peːr/) and named after a fruit known as Quince in English.
+This repository holds the backend service and underlying library that provides query expansion, it is called *Kweepeer* (pronounceas /ˈkʋe.pɪːr/ or  /ˈkwe.peːr/) and named after a fruit known as Quince in English.
+
 
 ## Installation
 
@@ -32,6 +33,16 @@ Development versions may require a development version of
 #[dependencies.analiticcl]
 paths = ["../analiticcl"]
 ```
+
+### Usage
+
+To use the webservice, run `kweepeer` and point it to a kweepeer configuration file.
+For the command-line interface, run `kweepeercli` and point it to a kweepeer configuration file.
+To start using the Rust library, run `cargo add kweeper` within your Rust project.
+
+### Configuration
+
+(to do)
 
 ## Architecture
 
