@@ -93,18 +93,18 @@ flowchart TD
 
     parser["Query Parser/Lexer"]
     compositor["Query Compositor"]
-    dispatcher["Dispatcher"]
-    parser -- "search terms" --> dispatcher
+    expander["Expander"]
+    parser -- "search terms" --> expander
 
     backend --> parser
-    compositor -- "expanded search query" --> backend
+    compositor -- "expanded search query + terms + template" --> backend
 
-    dispatcher <-- "search term" --> lexsimfst
-    dispatcher <--> lexsimanaliticcl
-    dispatcher <--> semsim
-    dispatcher <--> autocomplete
-    dispatcher <--> translator
-    dispatcher -- "expanded search terms" --> compositor
+    expander <-- "search term" --> lexsimfst
+    expander <--> lexsimanaliticcl
+    expander <--> semsim
+    expander <--> autocomplete
+    expander <--> translator
+    expander -- "expanded search terms + template" --> compositor
 
     lexsimfst --- fst
     fst --- lexicon
