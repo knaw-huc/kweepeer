@@ -45,7 +45,14 @@ fn main() -> Result<(), kweepeer::Error> {
             let (terms, query_template) = Term::extract_from_query(&querystring);
             let params = QueryParams::default(); //TODO: parse parameters from args
             state.expand_query_into(&mut terms_map, &terms, &params)?;
-            let response = ApiResponse::new_queryexpansion(terms_map, &querystring, query_template);
+            let resolved_template =
+                state.resolve_query_template(query_template.as_str(), &terms_map)?;
+            let response = ApiResponse::new_queryexpansion(
+                terms_map,
+                &querystring,
+                query_template,
+                resolved_template,
+            );
             match serde_json::to_string_pretty(&response) {
                 Ok(s) => println!("{}", s),
                 Err(e) => {

@@ -67,12 +67,13 @@ impl ApiResponse {
         terms: TermExpansions,
         query: &str,
         query_expansion_template: impl Into<String>,
+        resolved_query: impl Into<String>,
     ) -> Self {
         Self::QueryExpansion {
             query_expansion_template: query_expansion_template.into(),
             terms,
             original_query: query.to_owned(),
-            query: String::new(),
+            query: resolved_query.into(),
         }
     }
 }

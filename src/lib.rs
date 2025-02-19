@@ -169,6 +169,63 @@ impl QueryExpander {
         }
         Ok(())
     }
+
+    /// Resolved a query template by substituting the template terms by the disjunctions from query expansion
+    /// You won't really need to call this yourself.
+    pub fn resolve_query_template(
+        &self,
+        query_template: &str,
+        terms_map: &TermExpansions,
+    ) -> Result<String, Error> {
+        let mut query = String::with_capacity(query_template.len());
+        let mut termbegin = None;
+        let mut termend = None;
+        let mut prevc = None;
+        let mut expansioncache = std::collections::HashSet::<&str>::new();
+        for (i, c) in query_template.char_indices() {
+            if c == '{' && prevc == Some('{') {
+                termbegin = Some(i + 1);
+            }
+            if c == '}' && prevc == Some('}') && termbegin.is_some() {
+                if let Some(termend) = termend {
+                    query += &query_template[termend + 2..termbegin.unwrap() - 2];
+                }
+                termend = Some(i - 1);
+                let term = &query_template[termbegin.unwrap()..termend.unwrap()];
+                if let Some(termexpansions) = terms_map.get(term) {
+                    expansioncache.clear();
+                    for termexpansion in termexpansions {
+                        let mut first = true;
+                        for expansion in termexpansion.iter() {
+                            if !expansioncache.contains(expansion) {
+                                if !first {
+                                    query += "\" OR \"";
+                                } else {
+                                    if !expansioncache.is_empty() {
+                                        query += " OR ";
+                                    }
+                                    query += "(\"";
+                                }
+                                first = false;
+                                query += expansion;
+                                expansioncache.insert(expansion);
+                            }
+                        }
+                        if !first {
+                            query += "\")";
+                        }
+                    }
+                }
+                //reset
+                termbegin = None;
+            }
+            prevc = Some(c);
+        }
+        if let Some(termend) = termend {
+            query += &query_template[termend + 2..];
+        }
+        Ok(query)
+    }
 }
 
 /// convert a json array of strings to a rust Vec<&str>
@@ -252,6 +309,10 @@ impl TermExpansion {
 
     pub fn iter(&self) -> impl Iterator<Item = &str> {
         self.expansions.iter().map(|x| x.as_str())
+    }
+
+    pub fn as_vec(&self) -> &Vec<String> {
+        &self.expansions
     }
 }
 

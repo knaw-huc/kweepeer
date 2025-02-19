@@ -115,10 +115,13 @@ async fn query_entrypoint(
         let (terms, query_template) = Term::extract_from_query(querystring);
         let params: QueryParams = (&params).into();
         state.expand_query_into(&mut terms_map, &terms, &params)?;
+        let resolved_template =
+            state.resolve_query_template(query_template.as_str(), &terms_map)?;
         Ok(ApiResponse::new_queryexpansion(
             terms_map,
             querystring,
             query_template,
+            resolved_template,
         ))
     } else {
         Err(ApiError::MissingArgument("query"))
