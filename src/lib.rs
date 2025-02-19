@@ -146,20 +146,20 @@ impl QueryExpander {
             if (excludemods.is_empty() || !excludemods.contains(&module.id()))
                 || (includemods.is_empty() || includemods.contains(&module.id()))
             {
-                let expansion_map = module.expand_query(terms, params)?;
+                let mut expansion_map = module.expand_query(terms, params)?;
                 for term in terms.iter() {
                     terms_map
                         .entry(term.as_str().to_string())
                         .and_modify(|expansions| {
-                            if let Some(expansions2) = expansion_map.get(term.as_str()) {
+                            if let Some(expansions2) = expansion_map.remove(term.as_str()) {
                                 for expansion in expansions2 {
-                                    expansions.push(expansion.clone()); //TODO: work away the clone
+                                    expansions.push(expansion);
                                 }
                             }
                         })
                         .or_insert_with(|| {
-                            if let Some(expansions2) = expansion_map.get(term.as_str()) {
-                                expansions2.to_vec() //TODO: work away the clone
+                            if let Some(expansions2) = expansion_map.remove(term.as_str()) {
+                                expansions2
                             } else {
                                 vec![]
                             }
