@@ -29,7 +29,7 @@ pub struct FstConfig {
     /// The path to the lexicon (a simple wordlist, one word per line, the entries *MUST* be in lexographical order!
     file: PathBuf,
 
-    /// Levenshtein distance for lookups,
+    /// Default Levenshtein distance for lookups,
     distance: u8,
 
     /// Is the lexicon already sorted lexographically? If it is, setting this to true improves loading time/memory consumption
@@ -149,10 +149,16 @@ impl Module for FstModule {
         terms: &Vec<Term>,
         params: &QueryParams,
     ) -> Result<TermExpansions, Error> {
-        //TODO: get distance from params
+        let distance = if let Some(param) = params.get(self.id(), "distance") {
+            param.as_u64().ok_or_else(|| {
+                Error::QueryExpandError("invalid value for distance parameter".into())
+            })? as u32
+        } else {
+            self.config.distance as u32
+        };
         let mut expansions = TermExpansions::new();
         for term in terms {
-            match Levenshtein::new(term.as_str(), self.config.distance as u32) {
+            match Levenshtein::new(term.as_str(), distance) {
                 Ok(levaut) => {
                     debug!("Looking up {}", term.as_str());
                     let stream = self.set.search(levaut).into_stream();
