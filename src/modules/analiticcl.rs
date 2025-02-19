@@ -11,6 +11,8 @@ use analiticcl::{SearchParameters, VariantModel, VocabParams, Weights};
 #[derive(Debug, Deserialize, Clone)]
 pub struct Lexicon {
     filename: PathBuf,
+
+    #[serde(default)]
     params: VocabParams,
 }
 
