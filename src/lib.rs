@@ -170,7 +170,7 @@ impl QueryExpander {
         Ok(())
     }
 
-    /// Resolved a query template by substituting the template terms by the disjunctions from query expansion
+    /// Resolve a query template by substituting the template terms by the disjunctions from query expansion
     /// You won't really need to call this yourself.
     pub fn resolve_query_template(
         &self,
