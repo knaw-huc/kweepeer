@@ -32,6 +32,10 @@ pub struct FstConfig {
     /// Levenshtein distance for lookups,
     distance: u8,
 
+    /// Is the lexicon already sorted lexographically? If it is, setting this to true improves loading time/memory consumption
+    #[serde(default)]
+    sorted: bool,
+
     /// Set this if the first line is a header
     #[serde(default)]
     skipfirstline: bool,
@@ -43,12 +47,14 @@ impl FstConfig {
         name: impl Into<String>,
         file: impl Into<PathBuf>,
         distance: u8,
+        sorted: bool,
     ) -> Self {
         Self {
             id: id.into(),
             name: name.into(),
             file: file.into(),
             distance,
+            sorted,
             skipfirstline: false,
         }
     }
@@ -101,6 +107,7 @@ impl Module for FstModule {
         let mut reader = BufReader::new(file);
         let mut firstline = true;
         let mut builder = SetBuilder::memory();
+        let mut entries: Vec<String> = Vec::new();
         while let Ok(bytes) = reader.read_line(&mut buffer) {
             if bytes == 0 {
                 //EOF
@@ -114,12 +121,23 @@ impl Module for FstModule {
                 }
             }
             if buffer.chars().next() != Some('#') {
-                let line = buffer.trim();
-                if !line.is_empty() {
-                    builder.insert(line.as_bytes())?;
+                if let Some(line) = buffer.trim().splitn(2, '\t').next() {
+                    if !line.is_empty() {
+                        if self.config.sorted {
+                            builder.insert(line.as_bytes())?;
+                        } else {
+                            entries.push(line.to_owned());
+                        }
+                    }
                 }
             }
             buffer.clear();
+        }
+        if !entries.is_empty() {
+            entries.sort();
+            for entry in entries {
+                builder.insert(entry.as_bytes())?;
+            }
         }
         info!("Building FST");
         self.set = Set::new(builder.into_inner()?)?;
@@ -186,6 +204,7 @@ mod tests {
             name: "fst".into(),
             file: lexicon_file,
             distance: 2,
+            sorted: false,
             skipfirstline: false,
         };
         Ok(FstModule::new(config))

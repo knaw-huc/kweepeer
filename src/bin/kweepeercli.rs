@@ -34,7 +34,7 @@ fn main() -> Result<(), kweepeer::Error> {
     let mut state = QueryExpander::new().with_config(config);
 
     // Load all the modules
-    state.load().expect("Failure whilst loading");
+    state.load().expect("Failure whilst loading modules");
 
     info!("Reading queries from standard input");
 
