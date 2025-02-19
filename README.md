@@ -80,7 +80,7 @@ flowchart TD
 
     parser["Query parser"]
     subgraph modules 
-        lookupmodule["Expansion Lookup Module (in-memory hashmap)"]
+        lookup["Expansion Lookup Module (in-memory hashmap)"]
         lexsimfst["Lexical Similarity Module 1 (FST, in-memory)"]
         lexsimanaliticcl["Lexical Similarity Module 2 (Analiticcl, in-memory)"]
         semsim["Semantic Similarity Module"]
