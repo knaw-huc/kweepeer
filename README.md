@@ -93,7 +93,7 @@ flowchart TD
 
     parser["Query Parser/Lexer"]
     compositor["Query Compositor"]
-    expander["Expander"]
+    expander["Term Expander"]
     parser -- "search terms" --> expander
 
     backend --> parser
