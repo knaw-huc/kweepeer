@@ -80,11 +80,13 @@ flowchart TD
 
     parser["Query parser"]
     subgraph modules 
+        lookupmodule["Expansion Lookup Module (in-memory hashmap)"]
         lexsimfst["Lexical Similarity Module 1 (FST, in-memory)"]
         lexsimanaliticcl["Lexical Similarity Module 2 (Analiticcl, in-memory)"]
         semsim["Semantic Similarity Module"]
         autocomplete["Autocompletion Module"]
         translator["Translation Module"]
+        expansionmap[("Expansion Map")]
         fst[("Finite State Transducer")]
         lexicon[("(Weighted) Lexicon")]
         lm[("Language Model (Transformer)")]
@@ -100,15 +102,18 @@ flowchart TD
     compositor -- "expanded search query + terms + template" --> backend
 
     expander <-- "search term" --> lexsimfst
+    expander <--> lookup
     expander <--> lexsimanaliticcl
     expander <--> semsim
     expander <--> autocomplete
     expander <--> translator
     expander -- "expanded search terms + template" --> compositor
 
+    lookup --- expansionmap
     lexsimfst --- fst
     fst --- lexicon
     lexsimanaliticcl --- lexicon
+    lexsimanaliticcl --- expansionmap
     semsim --- lm
     autocomplete --- lm
     translator --- tm
