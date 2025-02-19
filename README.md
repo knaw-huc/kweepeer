@@ -122,3 +122,15 @@ flowchart TD
     class app,search,searchdb external
 ```
 
+### Modules
+
+The following modules are implemented:
+
+* *Category: Syntactic Similarity*
+    * **Lookup Module** -- `lookup` -- A simple lookup module that loads a mapping of terms and expansions from file into memory, and does lookup against it at run-time.
+    * **Finite State Transducer Module** -- `fst` -- Takes a lexicon as input and uses a Finite State Transducer to identify possible expansions from the lexicon within a given edit distance.
+    * **Anagram-hashing Module** -- `analiticcl` - Takes a lexicon or variant list as input and uses anagram hashing and further techniques to identify similar terms. This also has various advanced options such as the ability to define confusable characters, and simple language modelling capabilities. It uses [analiticcl](https://github.com/proycon/analiticcl).
+* *Category: Semantic Similarity*
+    * (TODO)
+
+
