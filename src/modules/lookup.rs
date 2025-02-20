@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
@@ -39,6 +40,9 @@ pub struct LookupConfig {
     /// Set this if the first line is a header
     #[serde(default)]
     skipfirstline: bool,
+
+    #[serde(default)]
+    casesensitive: bool,
 
     /// Allow numeric fields, otherwise they will be ignored (which is useful to filter out frequency/score information from input files)
     #[serde(default)]
@@ -119,7 +123,14 @@ impl Module for LookupModule {
                         })
                         .collect();
                     if !variants.is_empty() {
-                        self.data.variants.insert(keyword.to_owned(), variants);
+                        self.data.variants.insert(
+                            if self.config.casesensitive {
+                                keyword.to_owned()
+                            } else {
+                                keyword.to_lowercase()
+                            },
+                            variants,
+                        );
                     }
                 }
             }
@@ -137,10 +148,15 @@ impl Module for LookupModule {
         let mut expansions = TermExpansions::new();
         for term in terms {
             debug!("Looking up {}", term.as_str());
-            if let Some(variants) = self.data.variants.get(term.as_str()) {
+            let term = if self.config.casesensitive {
+                Cow::Borrowed(term.as_str())
+            } else {
+                Cow::Owned(term.as_str().to_lowercase())
+            };
+            if let Some(variants) = self.data.variants.get(term.as_ref()) {
                 debug!("found {} expansions", variants.len());
                 expansions.insert(
-                    term.as_str().to_string(),
+                    term.into_owned(),
                     vec![TermExpansion::default()
                         .with_source(self.config.id.as_str(), self.config.name.as_str())
                         .with_expansions(variants.to_vec())],
@@ -168,6 +184,7 @@ mod tests {
             delimiter: '\t',
             delimiter2: '\t',
             skipfirstline: false,
+            casesensitive: false,
             allow_numeric: false,
         }))
     }
