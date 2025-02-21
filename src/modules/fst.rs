@@ -190,7 +190,7 @@ impl Module for FstModule {
                             expansions.insert(
                                 term.into_owned(),
                                 vec![TermExpansion::default()
-                                    .with_source(self.config.id.as_str(), self.config.name.as_str())
+                                    .with_source(self)
                                     .with_expansions(variants.to_vec())],
                             );
                         } else {

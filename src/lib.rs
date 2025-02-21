@@ -249,13 +249,15 @@ pub struct TermExpansion {
     scores: Vec<f64>,
     source_id: Option<String>,
     source_name: Option<String>,
+    source_type: &'static str,
     link: Option<String>,
 }
 
 impl TermExpansion {
-    pub fn with_source(mut self, id: impl Into<String>, name: impl Into<String>) -> Self {
-        self.source_id = Some(id.into());
-        self.source_name = Some(name.into());
+    pub fn with_source(mut self, module: &impl Module) -> Self {
+        self.source_id = Some(module.id().into());
+        self.source_name = Some(module.name().into());
+        self.source_type = module.kind();
         self
     }
 

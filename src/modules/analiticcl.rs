@@ -242,8 +242,7 @@ impl Module for AnaliticclModule {
         for term in terms {
             debug!("Looking up {}", term.as_str());
             if let Some(model) = self.model.as_ref() {
-                let mut termexpansion = TermExpansion::default()
-                    .with_source(self.config.id.as_str(), self.config.name.as_str());
+                let mut termexpansion = TermExpansion::default().with_source(self);
                 let mut found = false;
                 for variant in model.find_variants(
                     term.as_str(),
