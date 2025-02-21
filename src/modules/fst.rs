@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::borrow::Cow;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
@@ -39,6 +40,9 @@ pub struct FstConfig {
     /// Set this if the first line is a header
     #[serde(default)]
     skipfirstline: bool,
+
+    #[serde(default)]
+    casesensitive: bool,
 }
 
 impl FstConfig {
@@ -56,6 +60,7 @@ impl FstConfig {
             distance,
             sorted,
             skipfirstline: false,
+            casesensitive: false,
         }
     }
 
@@ -124,9 +129,17 @@ impl Module for FstModule {
                 if let Some(line) = buffer.trim().splitn(2, '\t').next() {
                     if !line.is_empty() {
                         if self.config.sorted {
-                            builder.insert(line.as_bytes())?;
+                            if self.config.casesensitive {
+                                builder.insert(line.as_bytes())?;
+                            } else {
+                                builder.insert(line.to_lowercase().as_bytes())?;
+                            }
                         } else {
-                            entries.push(line.to_owned());
+                            if self.config.casesensitive {
+                                entries.push(line.to_owned());
+                            } else {
+                                entries.push(line.to_lowercase().to_owned());
+                            }
                         }
                     }
                 }
@@ -136,7 +149,11 @@ impl Module for FstModule {
         if !entries.is_empty() {
             entries.sort();
             for entry in entries {
-                builder.insert(entry.as_bytes())?;
+                if self.config.casesensitive {
+                    builder.insert(entry.as_bytes())?;
+                } else {
+                    builder.insert(entry.to_lowercase().as_bytes())?;
+                }
             }
         }
         info!("Building FST");
@@ -158,15 +175,20 @@ impl Module for FstModule {
         };
         let mut expansions = TermExpansions::new();
         for term in terms {
-            match Levenshtein::new(term.as_str(), distance) {
+            let term = if self.config.casesensitive {
+                Cow::Borrowed(term.as_str())
+            } else {
+                Cow::Owned(term.as_str().to_lowercase())
+            };
+            match Levenshtein::new(term.as_ref(), distance) {
                 Ok(levaut) => {
-                    debug!("Looking up {}", term.as_str());
+                    debug!("Looking up {}", term);
                     let stream = self.set.search(levaut).into_stream();
                     if let Ok(variants) = stream.into_strs() {
                         if !variants.is_empty() {
                             debug!("found {} expansions", variants.len());
                             expansions.insert(
-                                term.as_str().to_string(),
+                                term.into_owned(),
                                 vec![TermExpansion::default()
                                     .with_source(self.config.id.as_str(), self.config.name.as_str())
                                     .with_expansions(variants.to_vec())],
@@ -178,7 +200,7 @@ impl Module for FstModule {
                         debug!("UTF-8 decoding error, no results returned");
                     }
                 }
-                Err(e) => debug!("Can't build FST for term '{}': {}", term.as_str(), e),
+                Err(e) => debug!("Can't build FST for term '{}': {}", term, e),
             }
         }
         Ok(expansions)
@@ -212,6 +234,7 @@ mod tests {
             distance: 2,
             sorted: false,
             skipfirstline: false,
+            casesensitive: true,
         };
         Ok(FstModule::new(config))
     }
