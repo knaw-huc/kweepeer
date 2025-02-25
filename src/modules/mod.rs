@@ -6,6 +6,9 @@ pub mod analiticcl;
 #[cfg(feature = "fst")]
 pub mod fst;
 
+#[cfg(feature = "finalfusion")]
+pub mod finalfusion;
+
 use crate::lexer::Term;
 use crate::{Error, QueryParams, TermExpansions};
 

@@ -15,6 +15,10 @@ use modules::analiticcl::{AnaliticclConfig, AnaliticclModule};
 use modules::fst::{FstConfig, FstModule};
 
 use modules::lookup::{LookupConfig, LookupModule};
+
+#[cfg(feature = "finalfusion")]
+use modules::finalfusion::{FinalFusionConfig, FinalFusionModule};
+
 use modules::Module;
 
 pub use lexer::Term;
@@ -39,6 +43,9 @@ pub struct Config {
 
     #[cfg(feature = "fst")]
     fst: Vec<FstConfig>,
+
+    #[cfg(feature = "finalfusion")]
+    finalfusion: Vec<FinalFusionConfig>,
 }
 
 impl QueryExpander {
@@ -107,6 +114,17 @@ impl QueryExpander {
                 analiticclconfig.name()
             );
             let mut module = AnaliticclModule::new(analiticclconfig.clone());
+            module.load()?;
+            self.modules.push(Box::new(module));
+        }
+        #[cfg(feature = "finalfusion")]
+        for finalfusionconfig in self.config.finalfusion.iter() {
+            info!(
+                "Adding Finalfusion module {} - {}",
+                finalfusionconfig.id(),
+                finalfusionconfig.name()
+            );
+            let mut module = FinalFusionModule::new(finalfusionconfig.clone());
             module.load()?;
             self.modules.push(Box::new(module));
         }
