@@ -131,6 +131,6 @@ The following modules are implemented:
     * **Finite State Transducer Module** -- `fst` -- Takes a lexicon as input and uses a Finite State Transducer to identify possible expansions from the lexicon within a given edit distance.
     * **Anagram-hashing Module** -- `analiticcl` - Takes a lexicon or variant list as input and uses anagram hashing and further techniques to identify similar terms. This also has various advanced options such as the ability to define confusable characters, and simple language modelling capabilities. It uses [analiticcl](https://github.com/proycon/analiticcl).
 * *Category: Semantic Similarity*
-    * (TODO)
+    * **Semantic Similarity** -- `finalfusion` -- This implements semantic similarity using word embeddings and vector comparison metrics. It uses [finalfusion](https://github.com/finalfusion/finalfrontier).
 
 
