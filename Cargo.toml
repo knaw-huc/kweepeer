@@ -1,7 +1,8 @@
 [package]
 name = "kweepeer"
 description = "A generic webservice for interactive query expansion, expansion is provided via various modules"
-version = "0.1.0"
+documentation = "https://docs.rs/kweepeer"
+version = "0.1.1"
 edition = "2021"
 authors = ["Maarten van Gompel <proycon@anaproy.nl>"]
 include = ["src/**", "LICENSE", "README.md", "test/*","!test/int_*", "!test/nl_voc*"]
