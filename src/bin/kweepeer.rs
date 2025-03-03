@@ -1,13 +1,10 @@
-use axum::{
-    extract::Path, extract::Query, extract::State, http::HeaderMap, http::HeaderValue,
-    http::Request, routing::get, Form, Router,
-};
+use axum::{extract::Query, extract::State, routing::get, Router};
 use clap::Parser;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
-use tracing::{debug, error, info};
+use tracing::info;
 
 use serde_json::json;
 use toml;
