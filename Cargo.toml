@@ -8,7 +8,7 @@ include = ["src/**", "LICENSE", "README.md", "test/*","!test/int_*", "!test/nl_v
 license = "AGPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/knaw-huc/kweepeer"
-keywords = [ "text-processing", "query expansion", "search" ]
+keywords = [ "text-processing", "query-expansion", "search" ]
 
 [dependencies]
 axum = "0.8.1"
