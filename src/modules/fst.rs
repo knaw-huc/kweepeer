@@ -107,7 +107,13 @@ impl Module for FstModule {
 
     fn load(&mut self) -> Result<(), Error> {
         info!("Loading lexicon {}", self.config.file.as_path().display());
-        let file = File::open(self.config.file.as_path())?;
+        let file = File::open(self.config.file.as_path()).map_err(|e| {
+            Error::LoadError(format!(
+                "Fst Module could not open {}: {}",
+                self.config.file.as_path().display(),
+                e
+            ))
+        })?;
         let mut buffer = String::new();
         let mut reader = BufReader::new(file);
         let mut firstline = true;
