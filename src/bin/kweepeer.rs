@@ -65,7 +65,7 @@ async fn main() {
     let mut state = QueryExpander::new().with_config(config);
 
     // Load all the modules
-    state.load().expect("Failure whilst loading");
+    state.load().expect("Failure whilst loading modules");
 
     let app = Router::new()
         .route("/", get(query_entrypoint))

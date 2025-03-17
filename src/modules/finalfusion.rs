@@ -81,7 +81,13 @@ impl Module for FinalFusionModule {
     }
 
     fn load(&mut self) -> Result<(), Error> {
-        let mut reader = BufReader::new(File::open(self.config.file.as_path())?);
+        let mut reader = BufReader::new(File::open(self.config.file.as_path()).map_err(|e| {
+            Error::LoadError(format!(
+                "FinalFusion Module could not open {}: {}",
+                self.config.file.as_path().display(),
+                e
+            ))
+        })?);
         let embeddings = Embeddings::read_embeddings(&mut reader)?;
         self.model = Some(embeddings);
         Ok(())
