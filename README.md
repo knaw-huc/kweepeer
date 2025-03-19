@@ -45,9 +45,11 @@ To use the webservice, run `kweepeer` and point it to a kweepeer configuration f
 For the command-line interface, run `kweepeercli` and point it to a kweepeer configuration file.
 To start using the Rust library, run `cargo add kweeper` within your Rust project.
 
+See [the kweepeer(1) man page](docs/kweepeer.1.scd) for further details.
+
 ### Configuration
 
-(to do)
+See [the kweepeer(5) configuration man page](docs/kweepeer.5.scd).
 
 ## Architecture
 
