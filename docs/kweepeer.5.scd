@@ -17,7 +17,7 @@ The following module types can be defined, assuming kweepeer was
 compiled with support for all. We will discuss each in a subsection:
 
 *analiticcl* 
-	This module uses a library called analiticcl to identify lexical variants
+	This module uses a library called analiticcl to identify lexical syntactic variants
 	for the query terms. This module uses anagram hashing to find all terms with
 	a given edit-distance and incorporates various other techniques to identify 
 	the best spelling variants. The input for the module is typically a curated lexicon.
@@ -29,7 +29,7 @@ compiled with support for all. We will discuss each in a subsection:
 	_finalfrontier_(1) . See section _FINALFUSION_.
 
 *fst*
-	This is a Finite State Transducer to identify lexical variants for the query
+	This is a Finite State Transducer to identify lexical syntactic variants for the query
 	times. It finds all terms within a given edit-distance (Levenshtein). The
 	input is a curated or extracted lexicon. See section _FST_.
 

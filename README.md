@@ -18,8 +18,14 @@ This repository holds the backend service and underlying library that provides q
 
 Production environments:
 
+1. Make sure you have the necessary build dependencies:
+    * Debian/Ubuntu Linux: `apt install make cargo scdoc`
+    * Alpine Linux: `apk add make cargo scdoc`
+2. Install kweepeer as follows:
+
 ```
-$ cargo install kweepeer
+$ make
+$ sudo make install
 ```
 
 Development environments:
