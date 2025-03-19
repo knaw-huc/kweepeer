@@ -7,7 +7,7 @@ kweepeer - a generic webservice for interactive query expansion, expansion is pr
 # SYNTAX
 
 A kweepeer instantance is configured via a single configuration file in *TOML*
-syntax. See <https://toml.io/en/> for generic information about TOML. Kweepeer
+syntax. See https://toml.io/en/ for generic information about TOML. Kweepeer
 modules are defined as a so-called array of tables (between double square
 brackets). 
 
@@ -114,12 +114,21 @@ k = 10
 The fst module takes the following parameters in addition to the common
 parameters:
 
-*file* (mandatory)
+*file* (string, mandatory)
 	Path to a lexicon with one term per line, file may be tab-separated-values, everything except
 	the first column is ignored.
 
-*distance* (optional)
+*distance* (int, optional)
 	The default levenshtein distance, can be overriden at runtime.
+
+*sorted* (bool, optional, default false)
+    Is the lexicon already sorted lexographically? If it is, setting this to true improves loading time/memory consumption
+
+*skipfirstline* (bool, optional, default false)
+    Set this if the first line is a header
+
+*casesensitive* (bool, optional, default false)
+    Do case sensitive lookups
 
 The following example illustrates a simple configuration for a
 lookup module:
@@ -147,6 +156,15 @@ parameters:
 
 *delimiter2* (optional)
 	Secondary delimiter; between each variant (defaults to tab)	
+
+*skipfirstline* (bool, optional, default false)
+    Set this if the first line is a header
+
+*casesensitive* (bool, optional, default false)
+    Do case sensitive lookups
+
+*allow_numeric* (bool, optional, default false)
+    Allow numeric fields, otherwise they will be ignored (which is useful to filter out frequency/score information from input files)
 
 The following example illustrates a simple configuration for a
 lookup module:
