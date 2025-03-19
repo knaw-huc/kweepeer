@@ -1,6 +1,6 @@
 # Kweepeer: Interactive Query Expansion Service
 
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Crate](https://img.shields.io/crates/v/kweepeer.svg)](https://crates.io/crates/kweepeer)
 [![Docs](https://docs.rs/kweepeer/badge.svg)](https://docs.rs/kweepeer/)
 [![GitHub release](https://img.shields.io/github/release/knaw-huc/kweepeer.svg)](https://github.com/knaw-huc/kweepeer/releases/)
@@ -9,7 +9,7 @@
 
 The Globalise project requests an interactive query expansion webservice which expands terms in search queries with available synonyms and other suggestions. These expansions are returned to the caller, for display in a user interface, and the caller has control over which suggestions to accept or discard, offering a high degree of control over the final query. Please see [the original plan](PLAN.md) for details and initial discussion.
 
-This repository holds the backend service and underlying library that provides query expansion, it is called *Kweepeer* (pronounceas /ˈkʋe.pɪːr/ or  /ˈkwe.peːr/) and named after a fruit known as Quince in English.
+This repository holds the backend service and underlying library that provides query expansion, it is called *Kweepeer* (pronounce as /ˈkʋe.pɪːr/ or  /ˈkwe.peːr/) and named after a fruit known as Quince in English.
 
 
 ## Installation
