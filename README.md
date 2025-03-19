@@ -51,7 +51,7 @@ To use the webservice, run `kweepeer` and point it to a kweepeer configuration f
 For the command-line interface, run `kweepeercli` and point it to a kweepeer configuration file.
 To start using the Rust library, run `cargo add kweeper` within your Rust project.
 
-See [the kweepeer(1) man page](docs/kweepeer.1.scd) for further details.
+See [the kweepeer(1) man page](docs/kweepeer.1.scd) for further usage details or see [the API reference](https://docs.rs/kweepeer) if you use kweepeer as a Rust library.
 
 ### Configuration
 
@@ -140,5 +140,4 @@ The following modules are implemented:
     * **Anagram-hashing Module** -- `analiticcl` - Takes a lexicon or variant list as input and uses anagram hashing and further techniques to identify similar terms. This also has various advanced options such as the ability to define confusable characters, and simple language modelling capabilities. It uses [analiticcl](https://github.com/proycon/analiticcl).
 * *Category: Semantic Similarity*
     * **Semantic Similarity** -- `finalfusion` -- This implements semantic similarity using word embeddings and vector comparison metrics. It uses [finalfusion](https://github.com/finalfusion/finalfrontier).
-
 
