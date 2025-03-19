@@ -92,8 +92,8 @@ async fn main() {
     path = "/",
     params(
         ("q" = String, Query, description = "A query in Lucene syntax", allow_reserved),
-        ("include" = String, Query, description = "Comma separated list of modules to include", allow_reserved),
-        ("exclude" = String, Query, description = "Comma separated list of modules to exclude", allow_reserved),
+        ("include" = String, Query, description = "Comma separated list of modules to include (by ID)", allow_reserved),
+        ("exclude" = String, Query, description = "Comma separated list of modules to exclude (by ID)", allow_reserved),
     ),
     responses(
         (status = 200, description = "Query result",content(

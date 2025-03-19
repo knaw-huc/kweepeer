@@ -150,19 +150,19 @@ impl QueryExpander {
         terms: &Vec<Term>,
         params: &QueryParams,
     ) -> Result<(), Error> {
-        let excludemods: Vec<_> = if let Some(mods) = params.get("", "excludemods") {
+        let excludemods: Vec<_> = if let Some(mods) = params.get("", "exclude") {
             value_to_str_array(mods)
         } else {
             Vec::new()
         };
-        let includemods: Vec<_> = if let Some(mods) = params.get("", "includemods") {
+        let includemods: Vec<_> = if let Some(mods) = params.get("", "include") {
             value_to_str_array(mods)
         } else {
             Vec::new()
         };
         for module in self.modules() {
             if (excludemods.is_empty() || !excludemods.contains(&module.id()))
-                || (includemods.is_empty() || includemods.contains(&module.id()))
+                && (includemods.is_empty() || includemods.contains(&module.id()))
             {
                 let mut expansion_map = module.expand_query(terms, params)?;
                 for term in terms.iter() {
@@ -256,6 +256,8 @@ fn value_to_str_array(input: &Value) -> Vec<&str> {
             }
         }
         array_out
+    } else if let Value::String(s) = input {
+        s.split(',').collect()
     } else {
         Vec::new()
     }
@@ -390,8 +392,8 @@ impl QueryParams {
 
     /// Check if a key exists. By convention, we use an empty module_id for a global scope.
     pub fn contains(&self, module_id: &str, key: &str) -> bool {
-        for param in self.iter() {
-            if param.module_id() == module_id && param.key() == key {
+        for param in self.iter_for_module(module_id) {
+            if param.key() == key {
                 return true;
             }
         }
@@ -415,9 +417,9 @@ impl QueryParams {
 
     /// Retrieve a value by key
     /// By convention, we use an empty module_id for a global scope.
-    pub fn get<'a>(&'a self, module_id: &str, key: &str) -> Option<&'a Value> {
-        for param in self.iter() {
-            if param.module_id() == module_id && param.key() == key {
+    pub fn get<'a>(&'a self, module_id: &'a str, key: &str) -> Option<&'a Value> {
+        for param in self.iter_for_module(module_id) {
+            if param.key() == key {
                 return Some(param.value());
             }
         }
@@ -429,7 +431,7 @@ impl From<&HashMap<String, String>> for QueryParams {
     fn from(map: &HashMap<String, String>) -> Self {
         let mut result = QueryParams::new();
         for (key, value) in map.iter() {
-            let splitkey: Vec<_> = key.splitn(2, key).collect();
+            let splitkey: Vec<_> = key.splitn(2, '.').collect();
             if splitkey.len() == 1 {
                 result.insert("", key, value.to_owned().into());
             } else {
