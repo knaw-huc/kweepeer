@@ -4,3 +4,5 @@ env/
 Cargo.lock
 .cargo
 test/int_historisch_lexicon*
+docs/kweepeer.1
+docs/kweepeer.2
