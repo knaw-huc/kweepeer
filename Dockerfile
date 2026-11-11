@@ -6,7 +6,7 @@ RUN apk update && apk add cargo libgcc && \
     apk del git cargo && rm -rf /root/.cache /root/.cargo /tmp/*
 
 VOLUME /data
-EXPOSE 80
+EXPOSE 8080
 USER user
 WORKDIR /data
 
