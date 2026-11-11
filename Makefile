@@ -21,3 +21,7 @@ docs:
 
 %.pdf: %.md
 	pandoc -t pdf -F mermaid-filter -o $@ $<
+
+.PHONY: docker
+docker:
+	docker build -t proycon/kweepeer:latest .
